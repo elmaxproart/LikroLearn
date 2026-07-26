@@ -48,6 +48,23 @@ function LessonContent() {
       return;
     }
 
+    // Validate progression lock
+    const courseProgress = parsedUser.courses ? parsedUser.courses[courseId] : null;
+    if (!courseProgress) {
+      router.push('/dashboard');
+      return;
+    }
+
+    const allLessons = course.modules.flatMap((m) => m.lessons);
+    const idx = allLessons.findIndex((l) => l.id === id);
+    if (idx > 0) {
+      const prevLesson = allLessons[idx - 1];
+      if (courseProgress.progress[prevLesson.id] !== true) {
+        router.push('/dashboard');
+        return;
+      }
+    }
+
     let target = null;
     for (const mod of course.modules) {
       const les = mod.lessons.find((l) => l.id === id);

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Award, CheckCircle2, Clock, Play, ArrowLeft, LogOut, ChevronRight, Globe, Sun, Moon, Star, Compass, User } from 'lucide-react';
+import { BookOpen, Award, CheckCircle2, Clock, Play, ArrowLeft, LogOut, ChevronRight, Globe, Sun, Moon, Star, Compass, User, Lock } from 'lucide-react';
 import { COURSES } from '@/lib/courseData';
 
 export default function StudentDashboard() {
@@ -153,7 +153,7 @@ export default function StudentDashboard() {
       examCompleted: "Certification validée !",
       examFailed: "Examen non validé",
       takeExam: "Passer l'Examen Final Unique",
-      syllabus: "Syllabus Interactif",
+      syllabus: "Syllabus Interactif (Progression Linéaire)",
       lessonLabel: "Leçon",
       startLesson: "Démarrer l'exercice",
       completedBadge: "Validé",
@@ -161,7 +161,9 @@ export default function StudentDashboard() {
       reviewLabelRating: "Note d'évaluation",
       reviewLabelComment: "Votre commentaire d'étudiant",
       reviewBtn: "Soumettre mon avis",
-      reviewThanks: "Merci ! Votre avis a été enregistré avec succès et s'affiche sur la page d'accueil."
+      reviewThanks: "Merci ! Votre avis a été enregistré avec succès et s'affiche sur la page d'accueil.",
+      lockedMsg: "Verrouillé - Terminez les leçons précédentes",
+      examLockedMsg: "Examen verrouillé - Validez toutes les leçons"
     },
     en: {
       welcome: "Candidate:",
@@ -176,7 +178,7 @@ export default function StudentDashboard() {
       examCompleted: "Certified Graduate!",
       examFailed: "Exam Failed",
       takeExam: "Start Single-Attempt Final Exam",
-      syllabus: "Interactive Syllabus",
+      syllabus: "Interactive Syllabus (Linear progression)",
       lessonLabel: "Lesson",
       startLesson: "Start Coding Playground",
       completedBadge: "Completed",
@@ -184,21 +186,11 @@ export default function StudentDashboard() {
       reviewLabelRating: "Rating score",
       reviewLabelComment: "Your student experience comment",
       reviewBtn: "Submit Review",
-      reviewThanks: "Thank you! Your real review has been saved and is displayed on the main landing page."
+      reviewThanks: "Thank you! Your real review has been saved and is displayed on the main landing page.",
+      lockedMsg: "Locked - Complete previous lessons",
+      examLockedMsg: "Exam locked - Complete all lessons"
     }
   }[lang];
-
-  const getCourseRatingInfo = (courseId: string) => {
-    const courseReviews = reviews.filter((r) => r.courseId === courseId);
-    if (courseReviews.length === 0) {
-      return { avg: 5, count: 0 };
-    }
-    const sum = courseReviews.reduce((acc, r) => acc + r.rating, 0);
-    return {
-      avg: Math.round((sum / courseReviews.length) * 10) / 10,
-      count: courseReviews.length
-    };
-  };
 
   // List of enrolled course IDs
   const enrolledCourseIds = user.courses ? Object.keys(user.courses) : [];
@@ -216,6 +208,33 @@ export default function StudentDashboard() {
     ? Object.keys(courseProgressState.progress || {}).filter((k) => courseProgressState.progress[k] === true).length
     : 0;
   const percentComplete = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+  // Ordered list of all lessons in activeCourse to compute locks
+  const allCourseLessons = activeCourse ? activeCourse.modules.flatMap((m) => m.lessons) : [];
+
+  // Check if a lesson is unlocked (first is unlocked, or previous must be completed)
+  const isLessonUnlocked = (lessonId: string) => {
+    if (!courseProgressState) return false;
+    const idx = allCourseLessons.findIndex((l) => l.id === lessonId);
+    if (idx <= 0) return true; // First lesson is always open
+    const prev = allCourseLessons[idx - 1];
+    return courseProgressState.progress[prev.id] === true;
+  };
+
+  // Check if final exam is unlocked (all lessons must be completed)
+  const isExamUnlocked = allCourseLessons.length > 0 && allCourseLessons.every((l) => courseProgressState?.progress[l.id] === true);
+
+  const getCourseRatingInfo = (courseId: string) => {
+    const courseReviews = reviews.filter((r) => r.courseId === courseId);
+    if (courseReviews.length === 0) {
+      return { avg: 5, count: 0 };
+    }
+    const sum = courseReviews.reduce((acc, r) => acc + r.rating, 0);
+    return {
+      avg: Math.round((sum / courseReviews.length) * 10) / 10,
+      count: courseReviews.length
+    };
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-screen mobile-page-container">
@@ -284,13 +303,13 @@ export default function StudentDashboard() {
                       return (
                         <Star
                           key={i}
-                          className={`w-3 h-3 ${
+                          className={`w-3.5 h-3.5 ${
                             i < Math.round(ratingInfo.avg) ? 'fill-current' : 'text-slate-600'
                           }`}
                         />
                       );
                     })}
-                    <span className="text-[9px] text-[var(--text-muted)] font-bold ml-1">
+                    <span className="text-[10px] text-[var(--text-muted)] font-bold ml-1">
                       {getCourseRatingInfo(course.id).avg} ({getCourseRatingInfo(course.id).count})
                     </span>
                   </div>
@@ -409,15 +428,24 @@ export default function StudentDashboard() {
                       </button>
                     )}
                   </div>
-                ) : (
+                ) : isExamUnlocked ? (
                   <button
                     onClick={() => router.push(`/dashboard/certification?courseId=${activeCourse.id}`)}
-                    className="p-4 text-center rounded-xl border border-blue-500/20 hover:border-blue-500/40 bg-blue-500/5 hover:bg-blue-500/10 cursor-pointer transition-all w-full space-y-2 group"
+                    className="p-4 text-center rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 cursor-pointer transition-all w-full space-y-2 group"
                   >
-                    <Award className="w-8 h-8 text-blue-500 mx-auto group-hover:scale-110 transition-transform" />
+                    <Award className="w-8 h-8 text-emerald-500 mx-auto group-hover:scale-110 transition-transform animate-pulse" />
                     <h4 className="font-bold text-xs leading-snug">{t.takeExam}</h4>
-                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold">1 Attempt Allowed</p>
+                    <p className="text-[9px] text-emerald-400 uppercase tracking-wider font-bold">Unlocked</p>
                   </button>
+                ) : (
+                  <div
+                    title={t.examLockedMsg}
+                    className="p-4 text-center rounded-xl border border-slate-700/40 bg-slate-800/10 w-full space-y-2 opacity-50 cursor-not-allowed"
+                  >
+                    <Lock className="w-8 h-8 text-slate-500 mx-auto" />
+                    <h4 className="font-bold text-xs leading-snug text-slate-400">{t.takeExam}</h4>
+                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-bold">Locked</p>
+                  </div>
                 )}
               </div>
             </section>
@@ -504,11 +532,13 @@ export default function StudentDashboard() {
                     <div className="divide-y divide-[var(--border)]">
                       {mod.lessons.map((lesson) => {
                         const isCompleted = courseProgressState?.progress[lesson.id] === true;
+                        const isUnlocked = isLessonUnlocked(lesson.id);
 
                         return (
-                          <div key={lesson.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[var(--bg-tertiary)]/20 transition-colors">
+                          <div key={lesson.id} className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[var(--bg-tertiary)]/20 transition-colors ${!isUnlocked ? 'opacity-50' : ''}`}>
                             <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1">
+                                {!isUnlocked && <Lock className="w-3 h-3 text-slate-500" />}
                                 {t.lessonLabel} {lesson.id}
                               </span>
                               <h5 className="font-bold text-sm">{lang === 'fr' ? lesson.titleFr : lesson.titleEn}</h5>
@@ -519,15 +549,30 @@ export default function StudentDashboard() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                              {isCompleted && (
+                              {isCompleted ? (
                                 <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   {t.completedBadge}
                                 </span>
-                              )}
+                              ) : !isUnlocked ? (
+                                <span className="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                  <Lock className="w-3 h-3 text-slate-400" />
+                                  Locked
+                                </span>
+                              ) : null}
+                              
                               <button
-                                onClick={() => router.push(`/dashboard/lessons/${lesson.id}?courseId=${activeCourse.id}`)}
-                                className="px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                                onClick={() => {
+                                  if (isUnlocked) {
+                                    router.push(`/dashboard/lessons/${lesson.id}?courseId=${activeCourse.id}`);
+                                  }
+                                }}
+                                disabled={!isUnlocked}
+                                className={`px-3.5 py-2 border rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                                  isUnlocked
+                                    ? 'bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border-blue-500/20 cursor-pointer'
+                                    : 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'
+                                }`}
                               >
                                 <Play className="w-3.5 h-3.5" />
                                 {t.startLesson}
