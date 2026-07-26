@@ -166,6 +166,18 @@ export default function LandingPage() {
     setExpandedModuleId(expandedModuleId === modId ? null : modId);
   };
 
+  const getCourseRatingInfo = (courseId: string) => {
+    const courseReviews = liveReviews.filter((r) => r.courseId === courseId);
+    if (courseReviews.length === 0) {
+      return { avg: 5, count: 0 };
+    }
+    const sum = courseReviews.reduce((acc, r) => acc + r.rating, 0);
+    return {
+      avg: Math.round((sum / courseReviews.length) * 10) / 10,
+      count: courseReviews.length
+    };
+  };
+
   // Filter logic
   const filteredCourses = COURSES.filter((course) => {
     const matchesSearch = 
@@ -441,6 +453,24 @@ export default function LandingPage() {
                         <h3 className="text-base font-bold text-blue-400">
                           {lang === 'fr' ? course.titleFr : course.titleEn}
                         </h3>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <div className="flex text-amber-400">
+                            {[...Array(5)].map((_, i) => {
+                              const ratingInfo = getCourseRatingInfo(course.id);
+                              return (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < Math.round(ratingInfo.avg) ? 'fill-current' : 'text-slate-600'
+                                  }`}
+                                />
+                              );
+                            })}
+                          </div>
+                          <span className="text-[9px] text-[var(--text-muted)] font-bold">
+                            {getCourseRatingInfo(course.id).avg} ({getCourseRatingInfo(course.id).count} {lang === 'fr' ? 'avis' : 'reviews'})
+                          </span>
+                        </div>
                         <p className="text-xs text-[var(--text-secondary)] line-clamp-3">
                           {lang === 'fr' ? course.descriptionFr : course.descriptionEn}
                         </p>

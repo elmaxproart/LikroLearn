@@ -23,6 +23,20 @@ export default function StudentDashboard() {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
 
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  const loadReviews = async () => {
+    try {
+      const res = await fetch('/api/reviews');
+      const data = await res.json();
+      if (data.success) {
+        setReviews(data.reviews);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     // Check auth
     const stored = localStorage.getItem('student_user');
@@ -41,6 +55,8 @@ export default function StudentDashboard() {
     }
     const savedLang = localStorage.getItem('lang') as 'fr' | 'en' | null;
     if (savedLang) setLang(savedLang);
+
+    loadReviews();
   }, [router]);
 
   const toggleTheme = () => {
@@ -113,6 +129,7 @@ export default function StudentDashboard() {
         throw new Error(data.error || 'Failed to submit review');
       }
       setReviewSubmitted(true);
+      loadReviews();
     } catch (err: any) {
       setReviewError(err.message || 'Error occurred');
     } finally {
@@ -170,6 +187,18 @@ export default function StudentDashboard() {
       reviewThanks: "Thank you! Your real review has been saved and is displayed on the main landing page."
     }
   }[lang];
+
+  const getCourseRatingInfo = (courseId: string) => {
+    const courseReviews = reviews.filter((r) => r.courseId === courseId);
+    if (courseReviews.length === 0) {
+      return { avg: 5, count: 0 };
+    }
+    const sum = courseReviews.reduce((acc, r) => acc + r.rating, 0);
+    return {
+      avg: Math.round((sum / courseReviews.length) * 10) / 10,
+      count: courseReviews.length
+    };
+  };
 
   // List of enrolled course IDs
   const enrolledCourseIds = user.courses ? Object.keys(user.courses) : [];
@@ -249,6 +278,22 @@ export default function StudentDashboard() {
                   <h3 className="font-bold text-base text-blue-400">
                     {lang === 'fr' ? course.titleFr : course.titleEn}
                   </h3>
+                  <div className="flex items-center gap-1 mt-1 text-amber-400">
+                    {[...Array(5)].map((_, i) => {
+                      const ratingInfo = getCourseRatingInfo(course.id);
+                      return (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < Math.round(ratingInfo.avg) ? 'fill-current' : 'text-slate-600'
+                          }`}
+                        />
+                      );
+                    })}
+                    <span className="text-[9px] text-[var(--text-muted)] font-bold ml-1">
+                      {getCourseRatingInfo(course.id).avg} ({getCourseRatingInfo(course.id).count})
+                    </span>
+                  </div>
                   <p className="text-xs text-[var(--text-secondary)] mt-2 line-clamp-2">
                     {lang === 'fr' ? course.descriptionFr : course.descriptionEn}
                   </p>
@@ -293,6 +338,22 @@ export default function StudentDashboard() {
                     <h3 className="font-bold text-base">
                       {lang === 'fr' ? course.titleFr : course.titleEn}
                     </h3>
+                    <div className="flex items-center gap-1 mt-1 text-amber-400">
+                      {[...Array(5)].map((_, i) => {
+                        const ratingInfo = getCourseRatingInfo(course.id);
+                        return (
+                          <Star
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < Math.round(ratingInfo.avg) ? 'fill-current' : 'text-slate-600'
+                            }`}
+                          />
+                        );
+                      })}
+                      <span className="text-[9px] text-[var(--text-muted)] font-bold ml-1">
+                        {getCourseRatingInfo(course.id).avg} ({getCourseRatingInfo(course.id).count})
+                      </span>
+                    </div>
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-3">
                       {lang === 'fr' ? course.descriptionFr : course.descriptionEn}
                     </p>
