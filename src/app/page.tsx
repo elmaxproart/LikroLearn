@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal, ChevronDown, ChevronUp, Search, UserCheck, Play, ArrowRight, HelpCircle, Star, Compass, User } from 'lucide-react';
 import { COURSES } from '@/lib/courseData';
+import LofiStudyAnimation from '@/components/LofiStudyAnimation';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -355,17 +356,22 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Section */}
-        <section className="text-center space-y-6 pt-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-extrabold tracking-wider uppercase">
-            <Award className="w-3.5 h-3.5 text-emerald-400" />
-            {t.badge}
+        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center pt-4">
+          <div className="md:col-span-7 space-y-6 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-extrabold tracking-wider uppercase">
+              <Award className="w-3.5 h-3.5 text-emerald-400" />
+              {t.badge}
+            </div>
+            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+              {t.heroTitle}
+            </h1>
+            <p className="text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed">
+              {t.heroSub}
+            </p>
           </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight max-w-3xl mx-auto">
-            {t.heroTitle}
-          </h1>
-          <p className="text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed max-w-xl mx-auto">
-            {t.heroSub}
-          </p>
+          <div className="md:col-span-5 flex justify-center">
+            <LofiStudyAnimation />
+          </div>
         </section>
 
         {/* Dynamic Database Statistics */}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Award, CheckCircle2, Clock, Play, ArrowLeft, LogOut, ChevronRight, Globe, Sun, Moon, Star, Compass, User, Lock } from 'lucide-react';
 import { COURSES } from '@/lib/courseData';
+import LofiStudyAnimation from '@/components/LofiStudyAnimation';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -271,7 +272,9 @@ export default function StudentDashboard() {
       </header>
 
       {/* Main Student Portal dashboard layout */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-8 space-y-8">
         
         {/* Active enrolled programs */}
         <section className="space-y-4">
@@ -588,6 +591,18 @@ export default function StudentDashboard() {
             </section>
           </div>
         ) : null}
+          </div>
+          {/* Lofi Study Assistant Sidebar */}
+          <div className="lg:col-span-4 space-y-6 sticky top-24 lg:block hidden">
+            <div className="glass-panel p-6 border-[var(--border)] bg-[var(--bg-secondary)]/50 text-center space-y-4">
+              <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Compagnon d'Étude Lofi</span>
+              <LofiStudyAnimation />
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed italic">
+                "Prenez une tasse de café, détendez-vous et résolvez les exercices à votre rythme."
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Fixed bottom navigation bar for mobile webapp feel */}
