@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, AlertCircle, Play, Sparkles, Terminal, Globe, Moon, Sun } from 'lucide-react';
-import { COURSE_CURRICULUM } from '@/lib/courseData';
+import { COURSES } from '@/lib/courseData';
 
-export default function LessonPage() {
+function LessonContent() {
   const router = useRouter();
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('courseId') || 'algo-101';
+
   const [user, setUser] = useState<any>(null);
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -38,9 +41,15 @@ export default function LessonPage() {
     const savedLang = localStorage.getItem('lang') as 'fr' | 'en' | null;
     if (savedLang) setLang(savedLang);
 
-    // Load target lesson
+    // Load target course and lesson
+    const course = COURSES.find((c) => c.id === courseId);
+    if (!course) {
+      router.push('/dashboard');
+      return;
+    }
+
     let target = null;
-    for (const mod of COURSE_CURRICULUM) {
+    for (const mod of course.modules) {
       const les = mod.lessons.find((l) => l.id === id);
       if (les) {
         target = les;
@@ -55,7 +64,7 @@ export default function LessonPage() {
 
     setLesson(target);
     setCode(target.exercise.initialCode);
-  }, [id, router]);
+  }, [id, courseId, router]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -81,6 +90,7 @@ export default function LessonPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: user.email,
+          courseId,
           lessonId: lesson.id,
           code,
         }),
@@ -95,23 +105,8 @@ export default function LessonPage() {
 
       if (data.passed) {
         // Update local storage user progress
-        const updatedUser = { ...user };
-        updatedUser.progress[lesson.id] = true;
-        
-        // Auto advance to next lesson index if applicable
-        const allLessons = COURSE_CURRICULUM.flatMap((m) => m.lessons);
-        const currentIdx = allLessons.findIndex((l) => l.id === lesson.id);
-        if (currentIdx >= 0 && currentIdx < allLessons.length - 1) {
-          const nextLesson = allLessons[currentIdx + 1];
-          updatedUser.currentModule = nextLesson.moduleId;
-          updatedUser.currentLesson = parseInt(nextLesson.id.split('-')[1]);
-        } else {
-          updatedUser.currentModule = 5;
-          updatedUser.currentLesson = 1;
-        }
-
-        setUser(updatedUser);
-        localStorage.setItem('student_user', JSON.stringify(updatedUser));
+        setUser(data.user);
+        localStorage.setItem('student_user', JSON.stringify(data.user));
       }
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue.');
@@ -256,11 +251,10 @@ export default function LessonPage() {
 
       {/* Main content columns */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Side: Lesson content + visual Flowchart */}
+        {/* Left Side: Lesson content */}
         <section className="lg:col-span-6 space-y-6 overflow-y-auto max-h-[80vh] pr-2">
           <div className="glass-panel p-6 md:p-8 space-y-6">
             <div className="prose dark:prose-invert max-w-none text-sm text-[var(--text-secondary)] leading-relaxed">
-              {/* Parse lesson markdown titles manually or render them */}
               <div style={{ whiteSpace: 'pre-line' }}>
                 {lang === 'fr' ? lesson.contentFr : lesson.contentEn}
               </div>
@@ -276,7 +270,7 @@ export default function LessonPage() {
           </div>
         </section>
 
-        {/* Right Side: Coding Playground */}
+        {/* Right Side: Playground */}
         <section className="lg:col-span-6 space-y-6">
           <div className="glass-panel p-6 space-y-4 flex flex-col h-full">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
@@ -293,7 +287,6 @@ export default function LessonPage() {
               {lang === 'fr' ? lesson.exercise.questionFr : lesson.exercise.questionEn}
             </div>
 
-            {/* Code Textarea editor */}
             <div className="flex-1 min-h-[250px] relative rounded-xl overflow-hidden border border-[var(--border)] bg-slate-900 text-slate-100 font-mono text-sm p-4">
               <textarea
                 value={code}
@@ -311,7 +304,6 @@ export default function LessonPage() {
               </div>
             )}
 
-            {/* Test execution feedback */}
             {results && (
               <div className={`p-4 rounded-xl border flex items-start gap-3 ${
                 results.passed
@@ -350,5 +342,13 @@ export default function LessonPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function LessonPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading Lesson...</div>}>
+      <LessonContent />
+    </Suspense>
   );
 }

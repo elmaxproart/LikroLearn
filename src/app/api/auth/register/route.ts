@@ -27,12 +27,7 @@ export async function POST(req: Request) {
       name,
       lang: lang as 'fr' | 'en',
       isAdmin: false,
-      currentModule: 1,
-      currentLesson: 1,
-      progress: {},
-      examAttempted: false,
-      examScore: null,
-      examFinishedAt: null,
+      courses: {}, // Empty enrollments map
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
     };

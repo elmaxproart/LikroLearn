@@ -2,17 +2,22 @@ import { put, list } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 
+export interface CourseProgress {
+  progress: Record<string, boolean>;
+  examAttempted: boolean;
+  examScore: number | null;
+  examFinishedAt: string | null;
+  currentModule: number;
+  currentLesson: number;
+  enrolledAt: string;
+}
+
 export interface User {
   email: string;
   name: string;
   lang: 'fr' | 'en';
   isAdmin: boolean;
-  currentModule: number;
-  currentLesson: number;
-  progress: Record<string, boolean>; // e.g., "1-1": true
-  examAttempted: boolean;
-  examScore: number | null;
-  examFinishedAt: string | null;
+  courses: Record<string, CourseProgress>; // e.g. "algo-101": CourseProgress
   createdAt: string;
   lastActiveAt: string;
 }
@@ -46,12 +51,7 @@ const INITIAL_DB: DBState = {
       name: 'Tene Bana Maxym',
       lang: 'fr',
       isAdmin: true,
-      currentModule: 5,
-      currentLesson: 1,
-      progress: {},
-      examAttempted: false,
-      examScore: null,
-      examFinishedAt: null,
+      courses: {},
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
     }
@@ -102,7 +102,6 @@ async function readDB(): Promise<DBState> {
     return data;
   } catch (error) {
     console.error('Error reading from Vercel Blob:', error);
-    // Use memory cache or initial db if blob fails
     return memoryCache || INITIAL_DB;
   }
 }
@@ -124,7 +123,6 @@ async function writeDB(state: DBState): Promise<void> {
       addRandomSuffix: false,
       token,
     });
-    // Increment API Call KPI locally or in state
     state.kpis.blobApiCalls += 1;
   } catch (error) {
     console.error('Error writing to Vercel Blob:', error);

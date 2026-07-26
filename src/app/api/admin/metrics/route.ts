@@ -8,6 +8,7 @@ export async function GET(req: Request) {
     const kpis = await getKPIs();
 
     const students = users.filter((u) => !u.isAdmin);
+    const targetCourse = "algo-101";
 
     // 1. Total Registered Students
     const totalStudents = students.length;
@@ -16,20 +17,25 @@ export async function GET(req: Request) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const active24h = students.filter((s) => new Date(s.lastActiveAt) > oneDayAgo).length;
 
+    // Filter enrolled students in our primary course
+    const enrolledStudents = students.filter((s) => s.courses && s.courses[targetCourse]);
+    const totalEnrolled = enrolledStudents.length;
+
     // 3. Course Completion Rate (%)
-    const completedStudents = students.filter((s) => s.examAttempted && s.examScore !== null && s.examScore >= 70).length;
-    const completionRate = totalStudents > 0 ? Math.round((completedStudents / totalStudents) * 100) : 0;
+    const completedStudents = enrolledStudents.filter(
+      (s) => s.courses[targetCourse].examAttempted && s.courses[targetCourse].examScore !== null && s.courses[targetCourse].examScore >= 70
+    ).length;
+    const completionRate = totalEnrolled > 0 ? Math.round((completedStudents / totalEnrolled) * 100) : 0;
 
     // 4. Total Exercises Answered
     const totalExercisesAnswered = attempts.length;
 
     // 5. Final Exam Pass Rate (%)
-    const examTakers = students.filter((s) => s.examAttempted && s.examScore !== null);
-    const passedExamTakers = examTakers.filter((s) => s.examScore !== null && s.examScore >= 70).length;
+    const examTakers = enrolledStudents.filter((s) => s.courses[targetCourse].examAttempted && s.courses[targetCourse].examScore !== null);
+    const passedExamTakers = examTakers.filter((s) => (s.courses[targetCourse].examScore || 0) >= 70).length;
     const passRate = examTakers.length > 0 ? Math.round((passedExamTakers / examTakers.length) * 100) : 0;
 
     // 6. First-Time Success Rate (%)
-    // Calculate for each student/lesson combination if the first attempt was a pass
     const studentLessonAttempts: Record<string, any[]> = {};
     attempts.forEach((a) => {
       const key = `${a.email}_${a.lessonId}`;
@@ -39,7 +45,6 @@ export async function GET(req: Request) {
     let firstTimeSuccesses = 0;
     let totalUniqueSubmissions = 0;
     Object.values(studentLessonAttempts).forEach((atts) => {
-      // Sort by timestamp
       atts.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       totalUniqueSubmissions++;
       if (atts[0].passed) {
@@ -49,23 +54,23 @@ export async function GET(req: Request) {
     const firstTimeSuccessRate = totalUniqueSubmissions > 0 ? Math.round((firstTimeSuccesses / totalUniqueSubmissions) * 100) : 0;
 
     // 7. Average Final Exam Score (%)
-    const totalExamScores = examTakers.reduce((sum, s) => sum + (s.examScore || 0), 0);
+    const totalExamScores = examTakers.reduce((sum, s) => sum + (s.courses[targetCourse].examScore || 0), 0);
     const avgExamScore = examTakers.length > 0 ? Math.round(totalExamScores / examTakers.length) : 0;
 
     // 8. Total Certificates Issued
     const totalCertificates = completedStudents;
 
-    // 9. Average Lesson Read Time (estimate based on duration list: 20+25+30+30 = 105 mins total max)
-    const avgReadTimeEstimate = totalStudents > 0 ? 105 : 0;
+    // 9. Average Lesson Read Time
+    const avgReadTimeEstimate = totalEnrolled > 0 ? 105 : 0;
 
-    // 10. Language Preferred (JS vs C count)
+    // 10. Language Preferred (FR/EN)
     const langFr = students.filter((s) => s.lang === 'fr').length;
     const langEn = students.filter((s) => s.lang === 'en').length;
 
-    // 11. Security: reCAPTCHA Failures / Bot Blocks
+    // 11. Security blocks
     const recaptchaBlocks = kpis.recaptchaBlocks;
 
-    // 12. Vercel Blob Database Calls Count
+    // 12. Blob Calls
     const blobApiCalls = kpis.blobApiCalls;
 
     // 13. Daily Active Users (DAU)
@@ -73,29 +78,29 @@ export async function GET(req: Request) {
     startOfToday.setHours(0, 0, 0, 0);
     const dau = students.filter((s) => new Date(s.lastActiveAt) >= startOfToday).length;
 
-    // 14. Average User Progress (out of 4 main lessons)
-    const totalProgress = students.reduce((sum, s) => sum + Object.keys(s.progress).length, 0);
-    const avgProgress = totalStudents > 0 ? Math.round((totalProgress / (totalStudents * 4)) * 100) : 0;
+    // 14. Average User Progress
+    const totalProgress = enrolledStudents.reduce((sum, s) => sum + Object.keys(s.courses[targetCourse].progress).length, 0);
+    const avgProgress = totalEnrolled > 0 ? Math.round((totalProgress / (totalEnrolled * 4)) * 100) : 0;
 
-    // 15. Avg Time to Complete Certification (hours)
+    // 15. Avg Time to Complete Certification
     let totalCertHours = 0;
     let certifiedCount = 0;
-    students.forEach((s) => {
-      if (s.examFinishedAt) {
-        const durationMs = new Date(s.examFinishedAt).getTime() - new Date(s.createdAt).getTime();
+    enrolledStudents.forEach((s) => {
+      if (s.courses[targetCourse].examFinishedAt) {
+        const durationMs = new Date(s.courses[targetCourse].examFinishedAt).getTime() - new Date(s.courses[targetCourse].enrolledAt).getTime();
         totalCertHours += durationMs / (1000 * 60 * 60);
         certifiedCount++;
       }
     });
     const avgCertTimeHours = certifiedCount > 0 ? Math.round(totalCertHours / certifiedCount) : 0;
 
-    // 16. Total Submissions for JS Questions
+    // 16. Total JS Submissions
     const totalJsSubmissions = attempts.filter((a) => a.lang === 'js').length;
 
-    // 17. Total Submissions for C Questions
+    // 17. Total C Submissions
     const totalCSubmissions = attempts.filter((a) => a.lang === 'c').length;
 
-    // 18. System Latency Status (Simulated health API check)
+    // 18. System Latency Status
     const systemStatus = "Excellent (12ms)";
 
     return NextResponse.json({

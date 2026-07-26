@@ -19,21 +19,14 @@ export async function POST(req: Request) {
     const user = await getUserByEmail(email);
 
     if (isAdminLogin) {
-      // Check admin credentials
       if (email.toLowerCase() === 'admin@lickrotech.com' && password === 'maxym2026') {
         if (!user) {
-          // Auto create admin if missing
           const adminUser = {
             email: 'admin@lickrotech.com',
             name: 'Tene Bana Maxym',
             lang: 'fr' as const,
             isAdmin: true,
-            currentModule: 5,
-            currentLesson: 1,
-            progress: {},
-            examAttempted: false,
-            examScore: null,
-            examFinishedAt: null,
+            courses: {},
             createdAt: new Date().toISOString(),
             lastActiveAt: new Date().toISOString(),
           };
@@ -49,7 +42,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Student account not found' }, { status: 404 });
     }
 
-    // Update active status
     user.lastActiveAt = new Date().toISOString();
     await saveUser(user);
 

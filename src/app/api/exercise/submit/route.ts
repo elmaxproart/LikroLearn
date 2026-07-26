@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getUserByEmail, saveUser, saveAttempt, Attempt } from '@/lib/db';
-import { COURSE_CURRICULUM } from '@/lib/courseData';
+import { COURSES } from '@/lib/courseData';
 
 export async function POST(req: Request) {
   try {
-    const { email, lessonId, code } = await req.json();
+    const { email, courseId, lessonId, code } = await req.json();
 
-    if (!email || !lessonId || code === undefined) {
+    if (!email || !courseId || !lessonId || code === undefined) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
 
@@ -15,9 +15,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Check if enrolled
+    if (!user.courses || !user.courses[courseId]) {
+      return NextResponse.json({ error: 'Student is not enrolled in this course' }, { status: 403 });
+    }
+
+    const course = COURSES.find((c) => c.id === courseId);
+    if (!course) {
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+    }
+
     // Find the lesson
     let targetLesson = null;
-    for (const mod of COURSE_CURRICULUM) {
+    for (const mod of course.modules) {
       const les = mod.lessons.find((l) => l.id === lessonId);
       if (les) {
         targetLesson = les;
@@ -36,9 +46,6 @@ export async function POST(req: Request) {
 
     for (const tc of testCases) {
       try {
-        // Execute the user's JS function in a sandbox environment
-        // The code should define the function, e.g. function estPair(nombre) { ... }
-        // We append a invocation of the function, e.g. ;return estPair(4);
         const functionName = targetLesson.exercise.initialCode.match(/function\s+(\w+)/)?.[1] || '';
         
         if (!functionName) {
@@ -73,21 +80,21 @@ export async function POST(req: Request) {
     };
     await saveAttempt(attempt);
 
-    // If passed, update user progress
+    // If passed, update course progress
     if (passed) {
-      user.progress[lessonId] = true;
+      user.courses[courseId].progress[lessonId] = true;
       
-      // Auto advance student lesson if applicable
-      const allLessons = COURSE_CURRICULUM.flatMap((m) => m.lessons);
+      // Auto advance student lesson
+      const allLessons = course.modules.flatMap((m) => m.lessons);
       const currentIdx = allLessons.findIndex((l) => l.id === lessonId);
       if (currentIdx >= 0 && currentIdx < allLessons.length - 1) {
         const nextLesson = allLessons[currentIdx + 1];
-        user.currentModule = nextLesson.moduleId;
-        user.currentLesson = parseInt(nextLesson.id.split('-')[1]);
+        user.courses[courseId].currentModule = nextLesson.moduleId;
+        user.courses[courseId].currentLesson = parseInt(nextLesson.id.split('-')[1]);
       } else {
         // Advance to final exam module
-        user.currentModule = 5;
-        user.currentLesson = 1;
+        user.courses[courseId].currentModule = 5;
+        user.courses[courseId].currentLesson = 1;
       }
       
       await saveUser(user);
@@ -98,6 +105,7 @@ export async function POST(req: Request) {
       passed,
       score,
       error: executionError,
+      user, // return updated user
     });
   } catch (error: any) {
     console.error('Exercise submission error:', error);

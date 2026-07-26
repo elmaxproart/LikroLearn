@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Award, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, Printer, Globe, Sun, Moon } from 'lucide-react';
-import { CERTIFICATION_EXAM_QUESTIONS } from '@/lib/courseData';
+import { CERTIFICATION_EXAM_QUESTIONS, COURSES } from '@/lib/courseData';
 
-export default function CertificationPage() {
+function CertificationContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('courseId') || 'algo-101';
+
   const [user, setUser] = useState<any>(null);
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -71,6 +74,7 @@ export default function CertificationPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: user.email,
+          courseId,
           answers,
         }),
       });
@@ -82,13 +86,8 @@ export default function CertificationPage() {
 
       setPassedExam(data.passed);
       
-      // Update local storage
-      const updatedUser = { ...user };
-      updatedUser.examAttempted = true;
-      updatedUser.examScore = data.score;
-      updatedUser.examFinishedAt = new Date().toISOString();
-      setUser(updatedUser);
-      localStorage.setItem('student_user', JSON.stringify(updatedUser));
+      setUser(data.user);
+      localStorage.setItem('student_user', JSON.stringify(data.user));
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue');
     } finally {
@@ -98,9 +97,15 @@ export default function CertificationPage() {
 
   if (!user) return <div className="p-8 text-center">Loading...</div>;
 
-  // Verify all lessons completed
-  const totalLessons = 4;
-  const completedCount = Object.keys(user.progress || {}).filter((k) => user.progress[k] === true).length;
+  const targetCourse = COURSES.find((c) => c.id === courseId);
+  if (!targetCourse) return <div className="p-8 text-center text-red-500">Course not found.</div>;
+
+  const courseProgressState = user.courses ? user.courses[courseId] : null;
+  const totalLessons = targetCourse.modules.flatMap(m => m.lessons).length;
+  const completedCount = courseProgressState
+    ? Object.keys(courseProgressState.progress || {}).filter((k) => courseProgressState.progress[k] === true).length
+    : 0;
+
   const isEligible = completedCount >= totalLessons || user.isAdmin;
 
   const t = {
@@ -112,14 +117,13 @@ export default function CertificationPage() {
       warningDesc: "Cet examen ne peut être passé qu'une seule fois. Une fois soumis, vos résultats sont définitifs et envoyés à l'administration.",
       submitExam: "Soumettre mes Réponses",
       notEligibleTitle: "Examen Verrouillé",
-      notEligibleDesc: `Vous devez d'abord compléter l'ensemble des 4 leçons pratiques pour déverrouiller l'évaluation. (${completedCount}/${totalLessons} complétées)`,
+      notEligibleDesc: `Vous devez d'abord compléter l'ensemble des leçons pratiques pour déverrouiller l'évaluation. (${completedCount}/${totalLessons} complétées)`,
       examPassedTitle: "Félicitations, vous avez réussi !",
       examFailedTitle: "Évaluation Échouée",
       examFailedDesc: "Vous n'avez pas obtenu le score minimum requis de 70%. Votre tentative unique a été consommée. Les résultats ont été archivés pour votre enseignant.",
       certTitle: "CERTIFICAT DE RÉUSSITE",
       certSub: "Ce document officiel certifie que",
       certCourse: "a complété avec succès le cursus de certification",
-      certCourseName: "Algorithmique & Fondamentaux de Programmation (JS & C)",
       certAuthorSign: "Signature de l'Auteur",
       certProductSign: "Produit de Lickrotechnologie",
       printCert: "Imprimer / Télécharger le Certificat",
@@ -134,14 +138,13 @@ export default function CertificationPage() {
       warningDesc: "This exam can only be taken once. Once submitted, your scores are final and registered with the administration.",
       submitExam: "Submit Answers",
       notEligibleTitle: "Exam Locked",
-      notEligibleDesc: `You must complete all 4 practical lessons to unlock the certification exam. (${completedCount}/${totalLessons} completed)`,
+      notEligibleDesc: `You must complete all practical lessons to unlock the certification exam. (${completedCount}/${totalLessons} completed)`,
       examPassedTitle: "Congratulations, you passed!",
       examFailedTitle: "Certification Failed",
       examFailedDesc: "You did not achieve the required passing score of 70%. Your single attempt is exhausted. Results are archived for the administrator.",
       certTitle: "CERTIFICATE OF COMPLETION",
       certSub: "This official document certifies that",
       certCourse: "has successfully completed the certification curriculum",
-      certCourseName: "Algorithmics & Programming Fundamentals (JS & C)",
       certAuthorSign: "Author Signature",
       certProductSign: "Product of Lickrotechnologie",
       printCert: "Print / Download Certificate",
@@ -152,7 +155,7 @@ export default function CertificationPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      {/* Header (hidden during print) */}
+      {/* Header */}
       <header className="sticky top-0 z-50 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between print:hidden">
         <button
           onClick={() => router.push('/dashboard')}
@@ -176,7 +179,7 @@ export default function CertificationPage() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 flex flex-col justify-center">
         
-        {/* Scenario 1: Not Eligible (locked) */}
+        {/* Scenario 1: Not Eligible */}
         {!isEligible && (
           <div className="glass-panel p-8 text-center space-y-4 max-w-md mx-auto">
             <XCircle className="w-16 h-16 text-rose-500 mx-auto" />
@@ -188,7 +191,7 @@ export default function CertificationPage() {
         )}
 
         {/* Scenario 2: Eligible & Not Yet Attempted */}
-        {isEligible && !user.examAttempted && (
+        {isEligible && !courseProgressState?.examAttempted && (
           <div className="space-y-8">
             <div className="glass-panel p-6 space-y-4">
               <div className="flex items-center gap-3">
@@ -208,7 +211,7 @@ export default function CertificationPage() {
               </div>
             </div>
 
-            {/* Questions list */}
+            {/* Questions */}
             <div className="space-y-6">
               {CERTIFICATION_EXAM_QUESTIONS.map((q, qIdx) => (
                 <div key={q.id} className="glass-panel p-6 space-y-4">
@@ -250,14 +253,10 @@ export default function CertificationPage() {
           </div>
         )}
 
-        {/* Scenario 3: Attempted & Passed (Certificate) */}
-        {isEligible && user.examAttempted && user.examScore >= 70 && (
+        {/* Scenario 3: Passed (Certificate) */}
+        {isEligible && courseProgressState?.examAttempted && courseProgressState.examScore >= 70 && (
           <div className="space-y-8 py-6">
-            
-            {/* The Certificate card */}
             <div className="bg-white text-slate-900 border-8 border-slate-800 rounded-3xl p-8 md:p-12 space-y-8 relative overflow-hidden shadow-2xl print:border-4 print:p-6 print:shadow-none mx-auto max-w-4xl" style={{ fontFamily: 'Georgia, serif' }}>
-              
-              {/* Decorative borders */}
               <div className="absolute inset-4 border border-slate-300 rounded-2xl pointer-events-none"></div>
               
               <div className="text-center space-y-6 relative z-10">
@@ -277,18 +276,17 @@ export default function CertificationPage() {
                   {t.certCourse}
                 </p>
                 <h3 className="text-xl md:text-2xl font-bold text-slate-800 italic my-2">
-                  {t.certCourseName}
+                  {lang === 'fr' ? targetCourse.titleFr : targetCourse.titleEn}
                 </h3>
                 <p className="text-xs text-slate-400 uppercase tracking-wider font-sans">
-                  {t.scoreEarned}: {user.examScore}% | {t.dateText}: {new Date(user.examFinishedAt).toLocaleDateString()}
+                  {t.scoreEarned}: {courseProgressState.examScore}% | {t.dateText}: {new Date(courseProgressState.examFinishedAt).toLocaleDateString()}
                 </p>
               </div>
 
-              {/* Signatures */}
               <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-200 mt-12 relative z-10 text-center font-sans">
                 <div className="space-y-2">
                   <p className="text-base italic font-serif text-blue-700 text-2xl" style={{ fontFamily: '"Great Vibes", cursive, sans-serif' }}>
-                    Tene Bana Maxym
+                    {targetCourse.author}
                   </p>
                   <div className="w-24 h-0.5 bg-slate-400 mx-auto"></div>
                   <p className="text-xs text-slate-400 uppercase tracking-wider">{t.certAuthorSign}</p>
@@ -302,13 +300,11 @@ export default function CertificationPage() {
                 </div>
               </div>
 
-              {/* Holographic badge in background */}
               <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-slate-50 border-4 border-slate-200 opacity-20 pointer-events-none flex items-center justify-center">
                 <span className="text-slate-300 font-extrabold text-sm uppercase">VERIFIED</span>
               </div>
             </div>
 
-            {/* Actions (hidden in print) */}
             <div className="text-center print:hidden">
               <button
                 onClick={() => window.print()}
@@ -321,14 +317,14 @@ export default function CertificationPage() {
           </div>
         )}
 
-        {/* Scenario 4: Attempted & Failed */}
-        {isEligible && user.examAttempted && user.examScore < 70 && (
+        {/* Scenario 4: Failed */}
+        {isEligible && courseProgressState?.examAttempted && courseProgressState.examScore < 70 && (
           <div className="glass-panel p-8 text-center space-y-6 max-w-md mx-auto">
             <XCircle className="w-16 h-16 text-rose-500 mx-auto" />
             <h2 className="text-2xl font-bold text-rose-500">{t.examFailedTitle}</h2>
             <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl">
               <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest">{t.scoreEarned}</span>
-              <p className="text-3xl font-extrabold text-rose-500 mt-1">{user.examScore}%</p>
+              <p className="text-3xl font-extrabold text-rose-500 mt-1">{courseProgressState.examScore}%</p>
             </div>
             <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
               {t.examFailedDesc}
@@ -338,5 +334,13 @@ export default function CertificationPage() {
 
       </main>
     </div>
+  );
+}
+
+export default function CertificationPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading Certification...</div>}>
+      <CertificationContent />
+    </Suspense>
   );
 }

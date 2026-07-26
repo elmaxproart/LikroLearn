@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal } from 'lucide-react';
-import { COURSE_CURRICULUM } from '@/lib/courseData';
+import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal, Search } from 'lucide-react';
+import { COURSES } from '@/lib/courseData';
 
 export default function LandingPage() {
   const router = useRouter();
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isLogin, setIsLogin] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   
   // Form states
   const [email, setEmail] = useState('');
@@ -87,8 +89,8 @@ export default function LandingPage() {
         throw new Error(data.error || 'Authentification échouée');
       }
 
-      // Store student info in session/localStorage
       localStorage.setItem('student_user', JSON.stringify(data.user));
+      setShowAuthModal(false);
       
       if (data.user.isAdmin) {
         router.push('/admin');
@@ -102,58 +104,63 @@ export default function LandingPage() {
     }
   };
 
+  const handleEnrollClick = (course: any) => {
+    // Check if logged in
+    const stored = localStorage.getItem('student_user');
+    if (stored) {
+      router.push('/dashboard');
+    } else {
+      setSelectedCourse(course);
+      setShowAuthModal(true);
+    }
+  };
+
   // Dictionary for static content
   const t = {
     fr: {
-      heroTitle: "Maîtrisez l'Algorithmique & la Programmation",
-      heroSub: "Une formation d'excellence conçue par Tene Bana Maxym. Intégrez les fondamentaux logiques et passez du pseudo-code à la pratique en JavaScript et C.",
-      badge: "Certification Lickrotechnologie",
-      modulesTitle: "Programme Académique",
-      modulesDesc: "5 modules détaillés pour passer de débutant à certifié professionnel.",
+      catalogTitle: "Découvrez notre catalogue de formations",
+      catalogSub: "Des certifications de pointe conçues par des experts et propulsées par Lickrotechnologie.",
+      heroTitle: "Apprenez les technologies de demain avec lickrotechLearn",
+      heroSub: "Développez vos compétences sur Coursera-style. Cursus interactifs guidés, codage pratique en direct et certifications de valeur internationale.",
+      badge: "Produit de Lickrotechnologie",
+      modulesTitle: "Syllabus détaillé du programme",
       authTitleLogin: "Se connecter",
       authTitleReg: "S'inscrire",
       emailPl: "Adresse email académique",
       namePl: "Nom complet",
       adminLoginCheck: "Connexion en tant qu'administrateur",
       adminPassPl: "Mot de passe administrateur",
-      authBtn: "Accéder à ma formation",
-      authSubReg: "Pas encore de compte ? S'inscrire",
+      authBtn: "Valider et Accéder",
+      authSubReg: "Nouveau sur la plateforme ? S'inscrire",
       authSubLogin: "Déjà inscrit ? Se connecter",
-      authorSection: "À propos de l'auteur",
-      authorText: "Tene Bana Maxym est ingénieur principal chez Lickrotechnologie. Passionné par l'enseignement structuré, il a modélisé ce cursus pour former la prochaine génération de développeurs système et web.",
-      featuresTitle: "Pourquoi lickrotechLearn ?",
-      feature1: "Interactivité Totale",
-      feature1Desc: "Playground de code intégré pour tester vos compétences en direct.",
-      feature2: "Rigueur Académique",
-      feature2Desc: "Comme sur Coursera, le certificat requiert de valider tous les modules.",
-      feature3: "Tentative Unique",
-      feature3Desc: "L'examen final se passe en une seule tentative pour préserver la valeur de votre certification.",
+      authorSection: "À propos des Auteurs",
+      authorText: "Tene Bana Maxym est le créateur du programme d'algorithmique. Ingénieur principal chez Lickrotechnologie, il transmet sa rigueur logique.",
+      enrollBtn: "S'inscrire au programme",
+      difficulty: "Difficulté",
+      author: "Auteur",
       footer: "© 2026 Lickrotechnologie - lickrotechLearn. Tous droits réservés."
     },
     en: {
-      heroTitle: "Master Algorithmics & Programming",
-      heroSub: "An elite curriculum crafted by Tene Bana Maxym. Master logic fundamentals and bridge the gap from pseudocode to JavaScript and C code.",
-      badge: "Lickrotechnologie Certification",
-      modulesTitle: "Academic Curriculum",
-      modulesDesc: "5 detailed modules to take you from absolute beginner to certified professional.",
+      catalogTitle: "Explore Our Program Catalog",
+      catalogSub: "State-of-the-art certifications designed by experts and powered by Lickrotechnologie.",
+      heroTitle: "Learn Next-Gen Tech on lickrotechLearn",
+      heroSub: "Build your skills Coursera-style. Fully interactive guided curriculums, live coding environments, and globally recognized certificates.",
+      badge: "Product of Lickrotechnologie",
+      modulesTitle: "Detailed Program Syllabus",
       authTitleLogin: "Sign In",
       authTitleReg: "Register",
       emailPl: "Academic email address",
       namePl: "Full name",
       adminLoginCheck: "Log in as administrator",
       adminPassPl: "Administrator password",
-      authBtn: "Access My Course",
-      authSubReg: "New student? Register here",
-      authSubLogin: "Already enrolled? Sign In",
-      authorSection: "About the Author",
-      authorText: "Tene Bana Maxym is a lead engineer at Lickrotechnologie. Driven by structured education, he modeled this course to train the next generation of systems and web engineers.",
-      featuresTitle: "Why lickrotechLearn?",
-      feature1: "Fully Interactive",
-      feature1Desc: "Run code directly inside your browser and verify results in real-time.",
-      feature2: "Academic Rigor",
-      feature2Desc: "Like Coursera, the certification requires completing all modules sequentially.",
-      feature3: "Single Attempt",
-      feature3Desc: "The final exam allows exactly one attempt to ensure true certification credibility.",
+      authBtn: "Verify and Enter",
+      authSubReg: "New here? Register a new account",
+      authSubLogin: "Already registered? Sign In",
+      authorSection: "About the Authors",
+      authorText: "Tene Bana Maxym is the creator of the flagship algorithmics program. Lead engineer at Lickrotechnologie, he brings logic rigor to the students.",
+      enrollBtn: "Enroll in Program",
+      difficulty: "Difficulty",
+      author: "Author",
       footer: "© 2026 Lickrotechnologie - lickrotechLearn. All rights reserved."
     }
   }[lang];
@@ -171,23 +178,26 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Lang Selector */}
+          <button onClick={() => { setIsLogin(true); setShowAuthModal(true); }} className="text-sm font-semibold hover:text-blue-500 transition-colors">
+            {lang === 'fr' ? 'Se Connecter' : 'Sign In'}
+          </button>
+          
           <button onClick={toggleLang} className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors flex items-center gap-1 text-sm font-medium">
             <Globe className="w-4 h-4 text-blue-500" />
             {lang.toUpperCase()}
           </button>
 
-          {/* Theme Selector */}
           <button onClick={toggleTheme} className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors">
             {theme === 'light' ? <Moon className="w-4 h-4 text-slate-700" /> : <Sun className="w-4 h-4 text-amber-400" />}
           </button>
         </div>
       </header>
 
-      {/* Hero and Login grid */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        {/* Left column: Intro */}
-        <section className="lg:col-span-7 space-y-6">
+      {/* Hero section */}
+      <main className="flex-1 max-w-7xl mx-auto px-6 py-16 space-y-16">
+        
+        {/* Intro */}
+        <section className="text-center space-y-6 max-w-3xl mx-auto py-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
             <Award className="w-4 h-4" />
             {t.badge}
@@ -195,35 +205,137 @@ export default function LandingPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
             {t.heroTitle}
           </h1>
-          <p className="text-lg text-[var(--text-secondary)] leading-relaxed max-w-xl">
+          <p className="text-lg text-[var(--text-secondary)] leading-relaxed">
             {t.heroSub}
           </p>
+        </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-            <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] space-y-2">
-              <Code className="w-8 h-8 text-emerald-500" />
-              <h3 className="font-bold text-sm">{t.feature1}</h3>
-              <p className="text-xs text-[var(--text-muted)]">{t.feature1Desc}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] space-y-2">
-              <BookOpen className="w-8 h-8 text-blue-500" />
-              <h3 className="font-bold text-sm">{t.feature2}</h3>
-              <p className="text-xs text-[var(--text-muted)]">{t.feature2Desc}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] space-y-2">
-              <ShieldCheck className="w-8 h-8 text-rose-500" />
-              <h3 className="font-bold text-sm">{t.feature3}</h3>
-              <p className="text-xs text-[var(--text-muted)]">{t.feature3Desc}</p>
+        {/* Course Catalog display */}
+        <section className="space-y-8">
+          <div className="border-b border-[var(--border)] pb-4">
+            <h2 className="text-2xl font-bold">{t.catalogTitle}</h2>
+            <p className="text-sm text-[var(--text-muted)] mt-1">{t.catalogSub}</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {COURSES.map((course) => (
+              <div key={course.id} className="glass-panel overflow-hidden flex flex-col justify-between hover:border-blue-500/50 transition-all duration-300">
+                <div className="h-48 overflow-hidden relative">
+                  <img src={course.imageUrl} alt={lang === 'fr' ? course.titleFr : course.titleEn} className="w-full h-full object-cover transition-transform hover:scale-105 duration-500" />
+                </div>
+                <div className="p-8 flex flex-col justify-between flex-1 space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-1 bg-blue-500/10 text-blue-500 rounded-md text-xs font-bold uppercase tracking-wider">
+                        {t.difficulty}: {lang === 'fr' ? course.difficultyFr : course.difficultyEn}
+                      </span>
+                      <span className="text-xs text-[var(--text-muted)] font-medium">
+                        {t.author}: <strong className="text-[var(--text-primary)]">{course.author}</strong>
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-extrabold text-blue-500 leading-snug">
+                      {lang === 'fr' ? course.titleFr : course.titleEn}
+                    </h3>
+                    <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+                      {lang === 'fr' ? course.descriptionFr : course.descriptionEn}
+                    </p>
+                  </div>
+
+                  <div className="border-t border-[var(--border)] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                      {course.modules.length} Modules | {course.modules.flatMap(m => m.lessons).length} Lessons
+                    </div>
+                    <button
+                      onClick={() => handleEnrollClick(course)}
+                      className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition-all shadow-md flex items-center justify-center gap-2"
+                    >
+                      {t.enrollBtn}
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Detailed syllabus view of the algorithms course */}
+        <section className="py-12 border-t border-[var(--border)]">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+            <h2 className="text-3xl font-extrabold tracking-tight">{t.modulesTitle}</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {COURSES[0].modules.map((mod) => (
+              <div key={mod.id} className="p-6 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)] flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-extrabold text-lg">
+                    {mod.id}
+                  </div>
+                  <h3 className="font-bold text-lg leading-snug">
+                    {lang === 'fr' ? mod.titleFr : mod.titleEn}
+                  </h3>
+                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                    {lang === 'fr' ? mod.descriptionFr : mod.descriptionEn}
+                  </p>
+                </div>
+                <div className="pt-6 flex items-center justify-between text-xs font-semibold text-blue-500">
+                  <span>{mod.lessons.length} {lang === 'fr' ? 'Leçons' : 'Lessons'}</span>
+                  <span>{mod.lessons[0]?.duration || '20 min'}</span>
+                </div>
+              </div>
+            ))}
+            
+            {/* Exam Card */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white font-extrabold text-lg">
+                  5
+                </div>
+                <h3 className="font-bold text-lg leading-snug">
+                  {lang === 'fr' ? "Certification Finale" : "Final Certification"}
+                </h3>
+                <p className="text-sm text-blue-100 leading-relaxed">
+                  {lang === 'fr' ? "Évaluation sommative de 5 questions sur l'algorithmique avancée, le C et JavaScript." : "Summative 5-question exam covering advanced algorithmics, C, and JavaScript."}
+                </p>
+              </div>
+              <div className="pt-6 flex items-center justify-between text-xs font-bold text-white">
+                <span>{lang === 'fr' ? "Tentative Unique" : "Single Attempt"}</span>
+                <span>70% min</span>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Right column: Auth Card */}
-        <section className="lg:col-span-5">
-          <div className="glass-panel p-8 space-y-6">
+        {/* Author Section */}
+        <section className="max-w-4xl mx-auto text-center space-y-6 py-8 border-t border-[var(--border)]">
+          <h2 className="text-3xl font-extrabold tracking-tight">{t.authorSection}</h2>
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-2xl shadow-xl">
+              TBM
+            </div>
+            <h3 className="text-xl font-bold text-blue-500">Tene Bana Maxym</h3>
+            <p className="text-base text-[var(--text-secondary)] leading-relaxed max-w-xl">
+              {t.authorText}
+            </p>
+          </div>
+        </section>
+      </main>
+
+      {/* Auth Modal Overlay */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-panel p-8 w-full max-w-md space-y-6 relative bg-[var(--bg-secondary)]">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xl font-bold"
+            >
+              ✕
+            </button>
+
             <div className="space-y-2 text-center">
               <h2 className="text-2xl font-bold">{isLogin ? t.authTitleLogin : t.authTitleReg}</h2>
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-xs text-[var(--text-muted)]">
                 {isLogin ? "Saisissez vos identifiants d'accès" : "Rejoignez le programme dès aujourd'hui"}
               </p>
             </div>
@@ -314,73 +426,8 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
-        </section>
-      </main>
-
-      {/* Curriculum outline section */}
-      <section className="py-16 bg-[var(--bg-secondary)] border-t border-b border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-            <h2 className="text-3xl font-extrabold tracking-tight">{t.modulesTitle}</h2>
-            <p className="text-[var(--text-secondary)]">{t.modulesDesc}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {COURSE_CURRICULUM.map((mod) => (
-              <div key={mod.id} className="p-6 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border)] flex flex-col justify-between">
-                <div className="space-y-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-extrabold text-lg">
-                    {mod.id}
-                  </div>
-                  <h3 className="font-bold text-lg leading-snug">
-                    {lang === 'fr' ? mod.titleFr : mod.titleEn}
-                  </h3>
-                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                    {lang === 'fr' ? mod.descriptionFr : mod.descriptionEn}
-                  </p>
-                </div>
-                <div className="pt-6 flex items-center justify-between text-xs font-semibold text-blue-500">
-                  <span>{mod.lessons.length} {lang === 'fr' ? 'Leçons' : 'Lessons'}</span>
-                  <span>{mod.lessons[0]?.duration || '20 min'}</span>
-                </div>
-              </div>
-            ))}
-            
-            {/* Exam Module */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white font-extrabold text-lg">
-                  5
-                </div>
-                <h3 className="font-bold text-lg leading-snug">
-                  {lang === 'fr' ? "Certification Finale" : "Final Certification"}
-                </h3>
-                <p className="text-sm text-blue-100 leading-relaxed">
-                  {lang === 'fr' ? "Évaluation sommative de 5 questions sur l'algorithmique avancée, le C et JavaScript." : "Summative 5-question exam covering advanced algorithmics, C, and JavaScript."}
-                </p>
-              </div>
-              <div className="pt-6 flex items-center justify-between text-xs font-bold text-white">
-                <span>{lang === 'fr' ? "Tentative Unique" : "Single Attempt"}</span>
-                <span>70% min</span>
-              </div>
-            </div>
-          </div>
         </div>
-      </section>
-
-      {/* Author Section */}
-      <section className="max-w-4xl mx-auto px-6 py-16 text-center space-y-6">
-        <h2 className="text-3xl font-extrabold tracking-tight">{t.authorSection}</h2>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-2xl shadow-xl">
-            TBM
-          </div>
-          <h3 className="text-xl font-bold text-blue-500">Tene Bana Maxym</h3>
-          <p className="text-base text-[var(--text-secondary)] leading-relaxed max-w-xl">
-            {t.authorText}
-          </p>
-        </div>
-      </section>
+      )}
 
       {/* Footer */}
       <footer className="py-8 text-center text-xs text-[var(--text-muted)] border-t border-[var(--border)]">

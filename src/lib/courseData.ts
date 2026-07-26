@@ -28,21 +28,45 @@ export interface Module {
   lessons: Lesson[];
 }
 
-export const COURSE_CURRICULUM: Module[] = [
+export interface Course {
+  id: string;
+  titleFr: string;
+  titleEn: string;
+  descriptionFr: string;
+  descriptionEn: string;
+  author: string;
+  difficultyFr: string;
+  difficultyEn: string;
+  imageUrl: string;
+  modules: Module[];
+}
+
+export const COURSES: Course[] = [
   {
-    id: 1,
-    titleFr: "Introduction à l'Algorithmique et aux Logigrammes",
-    titleEn: "Introduction to Algorithms and Flowcharts",
-    descriptionFr: "Comprenez ce qu'est un algorithme, comment modéliser la logique avec du pseudocode et dessiner des logigrammes clairs.",
-    descriptionEn: "Understand what an algorithm is, how to model logic with pseudocode, and draw clear flowcharts.",
-    lessons: [
+    id: "algo-101",
+    titleFr: "Algorithmique & Fondamentaux de Programmation (JS & C)",
+    titleEn: "Algorithmics & Programming Fundamentals (JS & C)",
+    descriptionFr: "Le programme de référence de Lickrotechnologie pour maîtriser la logique algorithmique, concevoir des logigrammes et implémenter en JS et C.",
+    descriptionEn: "Lickrotechnologie's flagship program to master algorithmic logic, design flowcharts, and implement them in JS and C.",
+    author: "Tene Bana Maxym",
+    difficultyFr: "Débutant",
+    difficultyEn: "Beginner",
+    imageUrl: "/algo_course_cover.png",
+    modules: [
       {
-        id: "1-1",
-        moduleId: 1,
-        titleFr: "Qu'est-ce qu'un algorithme et un Logigramme ?",
-        titleEn: "What is an Algorithm and a Flowchart?",
-        duration: "20 min",
-        contentFr: `
+        id: 1,
+        titleFr: "Introduction à l'Algorithmique et aux Logigrammes",
+        titleEn: "Introduction to Algorithms and Flowcharts",
+        descriptionFr: "Comprenez ce qu'est un algorithme, comment modéliser la logique avec du pseudocode et dessiner des logigrammes clairs.",
+        descriptionEn: "Understand what an algorithm is, how to model logic with pseudocode, and draw clear flowcharts.",
+        lessons: [
+          {
+            id: "1-1",
+            moduleId: 1,
+            titleFr: "Qu'est-ce qu'un algorithme et un Logigramme ?",
+            titleEn: "What is an Algorithm and a Flowchart?",
+            duration: "20 min",
+            contentFr: `
 # Introduction à l'Algorithmique
 
 Un **algorithme** est une suite finie et ordonnée d'instructions ou d'opérations permettant de résoudre un problème ou d'obtenir un résultat. C'est la recette de cuisine de l'informatique !
@@ -99,8 +123,8 @@ const char* faireDuThe(bool eauChaude) {
     }
 }
 \`\`\`
-        `,
-        contentEn: `
+            `,
+            contentEn: `
 # Introduction to Algorithms
 
 An **algorithm** is a finite and ordered sequence of instructions or operations to solve a problem or obtain a result. It's the recipe book of computer science!
@@ -157,35 +181,35 @@ const char* makeTea(bool hotWater) {
     }
 }
 \`\`\`
-        `,
-        exercise: {
-          questionFr: "Écrivez une fonction en JavaScript `calculerAireRectangle(largeur, hauteur)` qui retourne l'aire d'un rectangle.",
-          questionEn: "Write a function in JavaScript `calculerAireRectangle(largeur, hauteur)` that returns the area of a rectangle.",
-          lang: "js",
-          initialCode: "function calculerAireRectangle(largeur, hauteur) {\n  // Votre code ici\n}",
-          testCases: [
-            { input: "5, 10", expected: "50" },
-            { input: "3, 7", expected: "21" }
-          ],
-          solutionTemplate: "return largeur * hauteur;"
-        }
-      }
-    ]
-  },
-  {
-    id: 2,
-    titleFr: "Variables, Types de Données et Opérateurs",
-    titleEn: "Variables, Data Types, and Operators",
-    descriptionFr: "Découvrez comment stocker des informations en mémoire, les types de données fondamentaux et comment les manipuler en C et JS.",
-    descriptionEn: "Learn how to store information in memory, basic data types, and how to manipulate them in C and JS.",
-    lessons: [
+            `,
+            exercise: {
+              questionFr: "Écrivez une fonction en JavaScript `calculerAireRectangle(largeur, hauteur)` qui retourne l'aire d'un rectangle.",
+              questionEn: "Write a function in JavaScript `calculerAireRectangle(largeur, hauteur)` that returns the area of a rectangle.",
+              lang: "js",
+              initialCode: "function calculerAireRectangle(largeur, hauteur) {\n  // Votre code ici\n}",
+              testCases: [
+                { input: "5, 10", expected: "50" },
+                { input: "3, 7", expected: "21" }
+              ],
+              solutionTemplate: "return largeur * hauteur;"
+            }
+          }
+        ]
+      },
       {
-        id: "2-1",
-        moduleId: 2,
-        titleFr: "Variables et types en JS et C",
-        titleEn: "Variables and types in JS & C",
-        duration: "25 min",
-        contentFr: `
+        id: 2,
+        titleFr: "Variables, Types de Données et Opérateurs",
+        titleEn: "Variables, Data Types, and Operators",
+        descriptionFr: "Découvrez comment stocker des informations en mémoire, les types de données fondamentaux et comment les manipuler en C et JS.",
+        descriptionEn: "Learn how to store information in memory, basic data types, and how to manipulate them in C and JS.",
+        lessons: [
+          {
+            id: "2-1",
+            moduleId: 2,
+            titleFr: "Variables et types en JS et C",
+            titleEn: "Variables and types in JS & C",
+            duration: "25 min",
+            contentFr: `
 # Variables et Mémoire
 
 Une **variable** est un espace de stockage nommé en mémoire vive (RAM).
@@ -210,8 +234,8 @@ int age = 25;
 float taille = 1.75;
 char initiale = 'M';
 \`\`\`
-        `,
-        contentEn: `
+            `,
+            contentEn: `
 # Variables and Memory
 
 A **variable** is a named storage location in RAM.
@@ -236,35 +260,35 @@ int age = 25;
 float height = 1.75;
 char initial = 'M';
 \`\`\`
-        `,
-        exercise: {
-          questionFr: "Écrivez une fonction en JavaScript `estPair(nombre)` qui retourne `true` si le nombre est pair, et `false` sinon.",
-          questionEn: "Write a function in JavaScript `estPair(nombre)` that returns `true` if the number is even, and `false` otherwise.",
-          lang: "js",
-          initialCode: "function estPair(nombre) {\n  // Votre code ici\n}",
-          testCases: [
-            { input: "4", expected: "true" },
-            { input: "7", expected: "false" }
-          ],
-          solutionTemplate: "return nombre % 2 === 0;"
-        }
-      }
-    ]
-  },
-  {
-    id: 3,
-    titleFr: "Structures de Contrôle et Boucles",
-    titleEn: "Control Structures and Loops",
-    descriptionFr: "Dirigez l'exécution de vos programmes avec les conditions (if/else) et les boucles (for/while).",
-    descriptionEn: "Control the execution flow of your programs with conditions (if/else) and loops (for/while).",
-    lessons: [
+            `,
+            exercise: {
+              questionFr: "Écrivez une fonction en JavaScript `estPair(nombre)` qui retourne `true` si le nombre est pair, et `false` sinon.",
+              questionEn: "Write a function in JavaScript `estPair(nombre)` that returns `true` if the number is even, and `false` otherwise.",
+              lang: "js",
+              initialCode: "function estPair(nombre) {\n  // Votre code ici\n}",
+              testCases: [
+                { input: "4", expected: "true" },
+                { input: "7", expected: "false" }
+              ],
+              solutionTemplate: "return nombre % 2 === 0;"
+            }
+          }
+        ]
+      },
       {
-        id: "3-1",
-        moduleId: 3,
-        titleFr: "Conditions et Boucles",
-        titleEn: "Conditions and Loops",
-        duration: "30 min",
-        contentFr: `
+        id: 3,
+        titleFr: "Structures de Contrôle et Boucles",
+        titleEn: "Control Structures and Loops",
+        descriptionFr: "Dirigez l'exécution de vos programmes avec les conditions (if/else) et les boucles (for/while).",
+        descriptionEn: "Control the execution flow of your programs with conditions (if/else) and loops (for/while).",
+        lessons: [
+          {
+            id: "3-1",
+            moduleId: 3,
+            titleFr: "Conditions et Boucles",
+            titleEn: "Conditions and Loops",
+            duration: "30 min",
+            contentFr: `
 # Structures Conditionnelles et Boucles
 
 Les structures de contrôle permettent de rompre l'exécution séquentielle (ligne par ligne) d'un programme.
@@ -288,8 +312,8 @@ for (int i = 0; i < 5; i++) {
     printf("%d\\n", i);
 }
 \`\`\`
-        `,
-        contentEn: `
+            `,
+            contentEn: `
 # Conditionals and Loops
 
 Control structures interrupt the sequential execution of a program based on conditions.
@@ -313,35 +337,35 @@ for (int i = 0; i < 5; i++) {
     printf("%d\\n", i);
 }
 \`\`\`
-        `,
-        exercise: {
-          questionFr: "Créez une fonction `sommeJusqua(n)` qui retourne la somme de tous les entiers de 1 à n inclus.",
-          questionEn: "Create a function `sommeJusqua(n)` that returns the sum of all integers from 1 to n inclusive.",
-          lang: "js",
-          initialCode: "function sommeJusqua(n) {\n  // Votre code ici\n}",
-          testCases: [
-            { input: "5", expected: "15" },
-            { input: "10", expected: "55" }
-          ],
-          solutionTemplate: "let s = 0; for(let i=1;i<=n;i++) s+=i; return s;"
-        }
-      }
-    ]
-  },
-  {
-    id: 4,
-    titleFr: "Fonctions, Tableaux et Mémoire",
-    titleEn: "Functions, Arrays, and Memory",
-    descriptionFr: "Modularisez votre logique avec les fonctions, gérez des listes d'éléments et comprenez la gestion de la mémoire.",
-    descriptionEn: "Modularize your logic using functions, manage lists, and understand memory management.",
-    lessons: [
+            `,
+            exercise: {
+              questionFr: "Créez une fonction `sommeJusqua(n)` qui retourne la somme de tous les entiers de 1 à n inclus.",
+              questionEn: "Create a function `sommeJusqua(n)` that returns the sum of all integers from 1 to n inclusive.",
+              lang: "js",
+              initialCode: "function sommeJusqua(n) {\n  // Votre code ici\n}",
+              testCases: [
+                { input: "5", expected: "15" },
+                { input: "10", expected: "55" }
+              ],
+              solutionTemplate: "let s = 0; for(let i=1;i<=n;i++) s+=i; return s;"
+            }
+          }
+        ]
+      },
       {
-        id: "4-1",
-        moduleId: 4,
-        titleFr: "Fonctions et Tableaux",
-        titleEn: "Functions and Arrays",
-        duration: "30 min",
-        contentFr: `
+        id: 4,
+        titleFr: "Fonctions, Tableaux et Mémoire",
+        titleEn: "Functions, Arrays, and Memory",
+        descriptionFr: "Modularisez votre logique avec les fonctions, gérez des listes d'éléments et comprenez la gestion de la mémoire.",
+        descriptionEn: "Modularize your logic using functions, manage lists, and understand memory management.",
+        lessons: [
+          {
+            id: "4-1",
+            moduleId: 4,
+            titleFr: "Fonctions et Tableaux",
+            titleEn: "Functions and Arrays",
+            duration: "30 min",
+            contentFr: `
 # Fonctions et Tableaux
 
 ## 1. Fonctions
@@ -361,8 +385,8 @@ En C, les tableaux ont une taille fixe allouée en mémoire :
 int tab[3] = {1, 2, 3};
 // Impossible d'ajouter un 4ème élément dynamiquement sans allocation dynamique (malloc)
 \`\`\`
-        `,
-        contentEn: `
+            `,
+            contentEn: `
 # Functions and Arrays
 
 ## 1. Functions
@@ -382,18 +406,20 @@ In C, arrays have a fixed size allocated in memory:
 int tab[3] = {1, 2, 3};
 // Cannot expand size without manual dynamic allocation (malloc/realloc)
 \`\`\`
-        `,
-        exercise: {
-          questionFr: "Écrivez une fonction `trouverMaximum(arr)` qui prend un tableau de nombres et retourne le plus grand nombre.",
-          questionEn: "Write a function `trouverMaximum(arr)` that takes an array of numbers and returns the largest number.",
-          lang: "js",
-          initialCode: "function trouverMaximum(arr) {\n  // Votre code ici\n}",
-          testCases: [
-            { input: "[1, 5, 3, 9, 2]", expected: "9" },
-            { input: "[-1, -5, -3]", expected: "-1" }
-          ],
-          solutionTemplate: "return Math.max(...arr);"
-        }
+            `,
+            exercise: {
+              questionFr: "Écrivez une fonction `trouverMaximum(arr)` qui prend un tableau de nombres et retourne le plus grand nombre.",
+              questionEn: "Write a function `trouverMaximum(arr)` that takes an array of numbers and returns the largest number.",
+              lang: "js",
+              initialCode: "function trouverMaximum(arr) {\n  // Votre code ici\n}",
+              testCases: [
+                { input: "[1, 5, 3, 9, 2]", expected: "9" },
+                { input: "[-1, -5, -3]", expected: "-1" }
+              ],
+              solutionTemplate: "return Math.max(...arr);"
+            }
+          }
+        ]
       }
     ]
   }

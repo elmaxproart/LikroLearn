@@ -52,6 +52,8 @@ export default function AdminDashboard() {
 
   if (loading && !metrics) return <div className="p-8 text-center">Loading Admin Panel...</div>;
 
+  const targetCourseId = "algo-101";
+
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       {/* Header */}
@@ -205,17 +207,18 @@ export default function AdminDashboard() {
                   <th className="p-4">Étudiant</th>
                   <th className="p-4">Langue</th>
                   <th className="p-4">Date Inscription</th>
-                  <th className="p-4">Leçons validées</th>
-                  <th className="p-4">Examen Tenté</th>
-                  <th className="p-4">Score Certif</th>
+                  <th className="p-4">Leçons validées (Algo)</th>
+                  <th className="p-4">Examen Tenté (Algo)</th>
+                  <th className="p-4">Score Certif (Algo)</th>
                   <th className="p-4">Statut</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {students.map((student) => {
-                  const completedLessonsCount = Object.keys(student.progress || {}).filter(
-                    (k) => student.progress[k] === true
-                  ).length;
+                  const enrollment = student.courses ? student.courses[targetCourseId] : null;
+                  const completedLessonsCount = enrollment
+                    ? Object.keys(enrollment.progress || {}).filter((k) => enrollment.progress[k] === true).length
+                    : 0;
 
                   return (
                     <tr key={student.email} className="hover:bg-[var(--bg-tertiary)]/20 transition-colors">
@@ -232,10 +235,10 @@ export default function AdminDashboard() {
                         {new Date(student.createdAt).toLocaleDateString()}
                       </td>
                       <td className="p-4 font-semibold text-center sm:text-left">
-                        {completedLessonsCount} / 4
+                        {enrollment ? `${completedLessonsCount} / 4` : 'Non inscrit'}
                       </td>
                       <td className="p-4">
-                        {student.examAttempted ? (
+                        {enrollment?.examAttempted ? (
                           <span className="text-emerald-500 font-bold flex items-center gap-1 text-xs">
                             <CheckCircle2 className="w-4 h-4" />
                             Oui / Yes
@@ -248,20 +251,24 @@ export default function AdminDashboard() {
                         )}
                       </td>
                       <td className="p-4 font-bold text-base">
-                        {student.examScore !== null ? `${student.examScore}%` : '-'}
+                        {enrollment?.examScore !== null ? `${enrollment?.examScore}%` : '-'}
                       </td>
                       <td className="p-4">
-                        {student.examScore !== null && student.examScore >= 70 ? (
+                        {enrollment?.examScore !== null && enrollment?.examScore >= 70 ? (
                           <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full text-xs font-bold uppercase">
                             Certifié
                           </span>
-                        ) : student.examAttempted ? (
+                        ) : enrollment?.examAttempted ? (
                           <span className="px-3 py-1 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-full text-xs font-bold uppercase">
                             Échoué
                           </span>
-                        ) : (
+                        ) : enrollment ? (
                           <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-xs font-bold uppercase">
                             En cours
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-slate-500/10 text-slate-500 border border-slate-200 rounded-full text-xs font-bold uppercase">
+                            Aucun
                           </span>
                         )}
                       </td>
