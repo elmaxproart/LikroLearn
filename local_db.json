@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "email": "admin@lickrotech.com",
+      "name": "Tene Bana Maxym",
+      "lang": "fr",
+      "isAdmin": true,
+      "courses": {},
+      "createdAt": "2026-07-26T23:38:29.197Z",
+      "lastActiveAt": "2026-07-26T23:38:29.197Z"
+    }
+  ],
+  "attempts": [],
+  "reviews": [
+    {
+      "email": "stephane@lickrotech.com",
+      "name": "Stéphane Ndjolo",
+      "courseId": "algo-101",
+      "rating": 5,
+      "comment": "Le cours d'algorithmes et logigrammes m'a permis de structurer ma pensée logique. Le playground interactif est génial.",
+      "timestamp": "2026-07-26T23:38:29.197Z"
+    },
+    {
+      "email": "elise@lickrotech.com",
+      "name": "Elise Mbarga",
+      "courseId": "springboot-202",
+      "rating": 5,
+      "comment": "Spring Boot est complexe, mais les diagrammes et exercices progressifs ont rendu le cours accessible. Certificat validé du premier coup !",
+      "timestamp": "2026-07-26T23:38:29.197Z"
+    }
+  ],
+  "kpis": {
+    "recaptchaBlocks": 0,
+    "blobApiCalls": 0,
+    "pageViews": 0
+  }
+}

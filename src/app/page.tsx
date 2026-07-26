@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal, ChevronDown, ChevronUp, Search, UserCheck, Play, ArrowRight, HelpCircle, Star } from 'lucide-react';
+import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal, ChevronDown, ChevronUp, Search, UserCheck, Play, ArrowRight, HelpCircle, Star, Compass, User } from 'lucide-react';
 import { COURSES } from '@/lib/courseData';
 
 export default function LandingPage() {
@@ -21,6 +21,15 @@ export default function LandingPage() {
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
 
+  // Dynamic reviews & stats state
+  const [liveStats, setLiveStats] = useState({
+    totalStudents: 1240,
+    totalCourses: 6,
+    totalCertificates: 310,
+    successRate: 92
+  });
+  const [liveReviews, setLiveReviews] = useState<any[]>([]);
+
   // FAQ active indexes
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
@@ -32,6 +41,25 @@ export default function LandingPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Load stats and reviews from DB
+  const loadDynamicData = async () => {
+    try {
+      const statsRes = await fetch('/api/stats');
+      const statsData = await statsRes.json();
+      if (statsData.success) {
+        setLiveStats(statsData.stats);
+      }
+
+      const reviewsRes = await fetch('/api/reviews');
+      const reviewsData = await reviewsRes.json();
+      if (reviewsData.success) {
+        setLiveReviews(reviewsData.reviews);
+      }
+    } catch (e) {
+      console.error('Error loading dynamic database info:', e);
+    }
+  };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const initialTheme = savedTheme || 'dark';
@@ -40,6 +68,8 @@ export default function LandingPage() {
 
     const savedLang = localStorage.getItem('lang') as 'fr' | 'en' | null;
     if (savedLang) setLang(savedLang);
+
+    loadDynamicData();
   }, []);
 
   const toggleTheme = () => {
@@ -185,26 +215,9 @@ export default function LandingPage() {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Stéphane Ndjolo",
-      roleFr: "Développeur Full-Stack Certifié",
-      roleEn: "Certified Full-Stack Developer",
-      commentFr: "Le cours d'algorithmes et logigrammes m'a permis de structurer ma pensée logique avant d'attaquer React. Le système d'exercice en direct est génial.",
-      commentEn: "The algorithms and flowchart course helped me structure my logical layout before starting React. The live interactive console is outstanding."
-    },
-    {
-      name: "Elise Mbarga",
-      roleFr: "Ingénieur Backend Junior",
-      roleEn: "Junior Backend Engineer",
-      commentFr: "Spring Boot est complexe, mais les diagrammes et exercices progressifs ont rendu le cours accessible. Certificat validé du premier coup !",
-      commentEn: "Spring Boot can be challenging, but the diagrams and exercises made it super accessible. Certificate unlocked on the first attempt!"
-    }
-  ];
-
   const t = {
     fr: {
-      catalogTitle: "Parcourez notre catalogue académique",
+      catalogTitle: "Programmes Académiques",
       catalogSub: "Des formations ciblées avec sandbox de validation et examens officiels.",
       heroTitle: "L'excellence des compétences systèmes et web.",
       heroSub: "Explorez nos spécialisations interactives conçues par Tene Bana Maxym. Du pseudo-code aux composants Next.js, apprenez avec rigueur.",
@@ -223,24 +236,25 @@ export default function LandingPage() {
       enrollBtn: "S'inscrire et démarrer",
       difficulty: "Difficulté",
       author: "Superviseur",
-      viewSyllabus: "Afficher le Syllabus de la leçon",
+      viewSyllabus: "Afficher le Syllabus",
       hideSyllabus: "Refermer le Syllabus",
       syllabusOverview: "Contenu académique",
       searchPl: "Rechercher une formation, un langage...",
-      diffAll: "Toutes les difficultés",
+      diffAll: "Difficultés",
       diffBeg: "Débutant",
       diffInt: "Intermédiaire",
       diffAdv: "Avancé",
-      statsStudents: "Candidats inscrits",
-      statsCourses: "Programmes complets",
-      statsCertifs: "Certificats décernés",
-      statsRate: "Taux de réussite",
+      statsStudents: "Candidats",
+      statsCourses: "Programmes",
+      statsCertifs: "Certificats",
+      statsRate: "Réussite",
       faqTitle: "Foire Aux Questions",
-      reviewsTitle: "Retours d'expérience candidats",
+      reviewsTitle: "Avis Réels de nos Candidats",
+      noReviews: "Aucun avis publié pour le moment. Soyez le premier !",
       footer: "© 2026 Lickrotechnologie - lickrotechLearn. Tous droits réservés."
     },
     en: {
-      catalogTitle: "Explore our Academic Catalog",
+      catalogTitle: "Academic Catalog",
       catalogSub: "Targeted programs featuring code compilers and single-attempt exams.",
       heroTitle: "Bridge the gap between logic and real systems.",
       heroSub: "Explore interactive specializations designed by Tene Bana Maxym. From pseudo-code diagrams to Next.js APIs, master it all.",
@@ -259,31 +273,32 @@ export default function LandingPage() {
       enrollBtn: "Enroll and Start",
       difficulty: "Difficulty",
       author: "Supervisor",
-      viewSyllabus: "Explore course syllabus",
-      hideSyllabus: "Close course syllabus",
+      viewSyllabus: "Explore syllabus",
+      hideSyllabus: "Close syllabus",
       syllabusOverview: "Syllabus details",
       searchPl: "Search courses, tags, technologies...",
       diffAll: "All difficulties",
       diffBeg: "Beginner",
       diffInt: "Intermediate",
       diffAdv: "Advanced",
-      statsStudents: "Registered students",
-      statsCourses: "Full courses",
-      statsCertifs: "Issued certificates",
+      statsStudents: "Students",
+      statsCourses: "Courses",
+      statsCertifs: "Certificates",
       statsRate: "Success rate",
       faqTitle: "Frequently Asked Questions",
-      reviewsTitle: "Candidate Reviews",
+      reviewsTitle: "Live Candidate Reviews",
+      noReviews: "No reviews published yet. Be the first!",
       footer: "© 2026 Lickrotechnologie - lickrotechLearn. All rights reserved."
     }
   }[lang];
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
+    <div className="flex-1 flex flex-col min-h-screen mobile-page-container">
       {/* Mesh Background */}
       <div className="grid-bg"></div>
 
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-40 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between">
+      {/* Navigation Header (Hidden on Mobile view for native feel) */}
+      <header className="sticky top-0 z-40 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between md:flex hidden">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="Lickrotech Logo" className="w-8 h-8 object-contain" />
           <div>
@@ -309,87 +324,95 @@ export default function LandingPage() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-12 space-y-16">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 space-y-12">
         
-        {/* Massive Hero Section */}
-        <section className="text-center space-y-8 py-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-widest uppercase">
-            <Award className="w-4 h-4 text-emerald-400" />
+        {/* Mobile Header (App style) */}
+        <div className="md:hidden flex items-center justify-between py-2 border-b border-[var(--border)]">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Lickrotech Logo" className="w-7 h-7 object-contain" />
+            <span className="font-extrabold tracking-tight text-base">lickrotech<span className="text-blue-500 ml-0.5">Learn</span></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={toggleLang} className="text-xs font-bold px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border)] rounded">
+              {lang.toUpperCase()}
+            </button>
+            <button onClick={toggleTheme} className="p-1.5 bg-[var(--bg-secondary)] border border-[var(--border)] rounded">
+              {theme === 'light' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Hero Section */}
+        <section className="text-center space-y-6 pt-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-extrabold tracking-wider uppercase">
+            <Award className="w-3.5 h-3.5 text-emerald-400" />
             {t.badge}
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl mx-auto">
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight max-w-3xl mx-auto">
             {t.heroTitle}
           </h1>
-          <p className="text-base md:text-lg text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed max-w-xl mx-auto">
             {t.heroSub}
           </p>
         </section>
 
-        {/* Global Statistics Counter */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 glass-panel border-[var(--border)] bg-[var(--glass-bg)] text-center">
+        {/* Dynamic Database Statistics */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 glass-panel border-[var(--border)] bg-[var(--glass-bg)] text-center">
           <div>
-            <p className="text-3xl font-extrabold text-blue-500">1,540+</p>
-            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsStudents}</p>
+            <p className="text-2xl font-extrabold text-blue-500">{liveStats.totalStudents}</p>
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase mt-0.5">{t.statsStudents}</p>
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-emerald-500">6</p>
-            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsCourses}</p>
+            <p className="text-2xl font-extrabold text-emerald-500">{liveStats.totalCourses}</p>
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase mt-0.5">{t.statsCourses}</p>
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-indigo-500">420+</p>
-            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsCertifs}</p>
+            <p className="text-2xl font-extrabold text-indigo-500">{liveStats.totalCertificates}</p>
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase mt-0.5">{t.statsCertifs}</p>
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-amber-500">92%</p>
-            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsRate}</p>
+            <p className="text-2xl font-extrabold text-amber-500">{liveStats.successRate}%</p>
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase mt-0.5">{t.statsRate}</p>
           </div>
         </section>
 
-        {/* Catalog Search & Multi-Filters Layout */}
-        <section className="space-y-6">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
-            <div>
-              <h2 className="text-2xl font-bold">{t.catalogTitle}</h2>
-              <p className="text-xs text-[var(--text-muted)] mt-1">{t.catalogSub}</p>
-            </div>
-
-            {/* Difficulty Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="premium-input text-xs font-semibold"
-              >
-                <option value="all">{t.diffAll}</option>
-                <option value="beginner">{t.diffBeg}</option>
-                <option value="intermediate">{t.diffInt}</option>
-                <option value="advanced">{t.diffAdv}</option>
-              </select>
-            </div>
+        {/* Catalog Search & Filtering */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] pb-2.5">
+            <h2 className="text-lg font-bold uppercase tracking-wider">{t.catalogTitle}</h2>
+            <select
+              value={selectedDifficulty}
+              onChange={(e) => setSelectedDifficulty(e.target.value)}
+              className="premium-input py-1.5 px-3 text-[10px] font-bold"
+            >
+              <option value="all">{lang === 'fr' ? 'Difficultés' : 'Difficulty'}</option>
+              <option value="beginner">{t.diffBeg}</option>
+              <option value="intermediate">{t.diffInt}</option>
+              <option value="advanced">{t.diffAdv}</option>
+            </select>
           </div>
 
-          {/* Search bar & Category filter pills */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="relative">
-              <Search className="absolute left-4 top-3.5 w-5 h-5 text-[var(--text-muted)]" />
+              <Search className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-muted)]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.searchPl}
-                className="w-full pl-12 pr-4 py-3.5 premium-input text-sm"
+                className="w-full pl-10 pr-3 py-2.5 premium-input text-xs"
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all ${
                     selectedCategory === cat.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-slate-500'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)]'
                   }`}
                 >
                   {lang === 'fr' ? cat.labelFr : cat.labelEn}
@@ -399,89 +422,72 @@ export default function LandingPage() {
           </div>
 
           {/* Catalog grid */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {filteredCourses.map((course) => {
               const isSyllabusOpen = expandedCourseId === course.id;
 
               return (
-                <div key={course.id} className="glass-panel overflow-hidden transition-all duration-300 border-[var(--border)]">
-                  <div className="grid grid-cols-1 md:grid-cols-12">
-                    
-                    {/* Course Card Cover */}
-                    <div className="md:col-span-4 h-48 md:h-full min-h-[220px] relative overflow-hidden">
-                      <img src={course.imageUrl} alt={course.titleFr} className="w-full h-full object-cover transition-transform hover:scale-105 duration-700" />
+                <div key={course.id} className="glass-panel overflow-hidden border-[var(--border)]">
+                  <div className="flex flex-col md:flex-row md:items-stretch">
+                    <div className="md:w-1/3 h-36 md:h-auto relative overflow-hidden">
+                      <img src={course.imageUrl} alt={course.titleFr} className="w-full h-full object-cover" />
                     </div>
-
-                    {/* Course Card Detail */}
-                    <div className="md:col-span-8 p-6 md:p-8 flex flex-col justify-between space-y-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-md text-xs font-bold uppercase tracking-wider">
-                            {t.difficulty}: {lang === 'fr' ? course.difficultyFr : course.difficultyEn}
-                          </span>
-                          <span className="text-xs text-[var(--text-muted)] font-medium">
-                            {t.author}: <strong className="text-[var(--text-primary)]">{course.author}</strong>
-                          </span>
+                    <div className="md:w-2/3 p-5 flex flex-col justify-between space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] font-bold uppercase">
+                          <span>{lang === 'fr' ? course.difficultyFr : course.difficultyEn}</span>
+                          <span>{course.author}</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-blue-500 leading-snug">
+                        <h3 className="text-base font-bold text-blue-400">
                           {lang === 'fr' ? course.titleFr : course.titleEn}
                         </h3>
-                        <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                        <p className="text-xs text-[var(--text-secondary)] line-clamp-3">
                           {lang === 'fr' ? course.descriptionFr : course.descriptionEn}
                         </p>
                       </div>
 
-                      <div className="border-t border-[var(--border)] pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="border-t border-[var(--border)] pt-3.5 flex items-center justify-between gap-4">
                         <button
                           onClick={() => toggleCourseSyllabus(course.id)}
-                          className="text-xs font-bold text-blue-500 hover:underline flex items-center gap-1 cursor-pointer"
+                          className="text-[10px] font-bold text-blue-500 hover:underline flex items-center gap-0.5 cursor-pointer"
                         >
-                          {isSyllabusOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          {isSyllabusOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                           {isSyllabusOpen ? t.hideSyllabus : t.viewSyllabus}
                         </button>
 
                         <button
                           onClick={() => handleEnrollClick(course.id)}
-                          className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2"
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition-all"
                         >
                           {t.enrollBtn}
-                          <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Interactive modules/lessons display drawer */}
+                  {/* Syllabus explorer drawer */}
                   {isSyllabusOpen && (
-                    <div className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-6 md:p-8 space-y-6">
-                      <h4 className="text-sm font-bold text-blue-500 border-b border-[var(--border)] pb-2 uppercase tracking-widest">
+                    <div className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-4 space-y-4">
+                      <h4 className="text-[10px] font-bold text-blue-500 uppercase tracking-widest border-b border-[var(--border)] pb-1.5">
                         {t.syllabusOverview}
                       </h4>
-
-                      <div className="space-y-4">
+                      <div className="space-y-3.5">
                         {course.modules.map((mod) => {
                           const isModuleOpen = expandedModuleId === mod.id;
-
                           return (
-                            <div key={mod.id} className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-primary)]">
+                            <div key={mod.id} className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--bg-primary)] text-xs">
                               <button
                                 onClick={() => toggleModule(mod.id)}
-                                className="w-full p-4 flex items-center justify-between text-left font-bold text-sm hover:bg-[var(--bg-tertiary)]/50 transition-colors"
+                                className="w-full p-3 flex items-center justify-between font-bold"
                               >
-                                <span className="flex items-center gap-2">
-                                  <span className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs">
-                                    {mod.id}
-                                  </span>
-                                  {lang === 'fr' ? mod.titleFr : mod.titleEn}
-                                </span>
-                                {isModuleOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                <span>{mod.id}. {lang === 'fr' ? mod.titleFr : mod.titleEn}</span>
+                                {isModuleOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                               </button>
-
                               {isModuleOpen && (
-                                <div className="p-4 bg-[var(--bg-secondary)]/50 border-t border-[var(--border)] divide-y divide-[var(--border)]">
+                                <div className="p-3 bg-[var(--bg-secondary)]/50 border-t border-[var(--border)] divide-y divide-[var(--border)]">
                                   {mod.lessons.map((les) => (
-                                    <div key={les.id} className="py-3 flex items-center justify-between text-xs text-[var(--text-secondary)]">
-                                      <span className="font-semibold">{lang === 'fr' ? les.titleFr : les.titleEn}</span>
+                                    <div key={les.id} className="py-2.5 flex items-center justify-between text-[11px] text-[var(--text-secondary)]">
+                                      <span>{lang === 'fr' ? les.titleFr : les.titleEn}</span>
                                       <span className="text-[var(--text-muted)]">{les.duration}</span>
                                     </div>
                                   ))}
@@ -490,12 +496,6 @@ export default function LandingPage() {
                             </div>
                           );
                         })}
-
-                        {/* Exam module representation */}
-                        <div className="p-4 border border-blue-500/30 rounded-xl bg-gradient-to-r from-blue-600/10 to-indigo-600/10 flex items-center justify-between text-sm font-semibold">
-                          <span>{lang === 'fr' ? 'Examen de Certification Finale' : 'Final Certification Exam'}</span>
-                          <span className="text-xs px-2.5 py-1 bg-blue-500/20 text-blue-400 rounded-md">70% min</span>
-                        </div>
                       </div>
                     </div>
                   )}
@@ -505,48 +505,55 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Student Testimonials */}
-        <section className="space-y-6">
-          <h2 className="text-xl font-bold text-center uppercase tracking-widest">{t.reviewsTitle}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {testimonials.map((testi, idx) => (
-              <div key={idx} className="p-6 glass-panel border-[var(--border)] flex flex-col justify-between">
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed italic">
-                  "{lang === 'fr' ? testi.commentFr : testi.commentEn}"
+        {/* Dynamic Reviews Section */}
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold text-center uppercase tracking-wider">{t.reviewsTitle}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {liveReviews.map((rev, idx) => (
+              <div key={idx} className="p-5 glass-panel border-[var(--border)] flex flex-col justify-between text-xs">
+                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic">
+                  "{rev.comment}"
                 </p>
-                <div className="pt-4 border-t border-[var(--border)] mt-4 flex items-center justify-between">
+                <div className="pt-3 border-t border-[var(--border)] mt-3 flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-sm">{testi.name}</h4>
-                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{lang === 'fr' ? testi.roleFr : testi.roleEn}</p>
+                    <h4 className="font-bold">{rev.name}</h4>
+                    <p className="text-[9px] text-[var(--text-muted)] mt-0.5">
+                      {rev.courseId === 'algo-101' ? 'Algorithmique' : 'Développeur Web'}
+                    </p>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-current" />
+                      <Star key={i} className={`w-3 h-3 ${i < rev.rating ? 'text-amber-400 fill-current' : 'text-slate-600'}`} />
                     ))}
                   </div>
                 </div>
               </div>
             ))}
+            {liveReviews.length === 0 && (
+              <p className="text-xs text-center text-[var(--text-muted)] col-span-2 py-4">
+                {t.noReviews}
+              </p>
+            )}
           </div>
         </section>
 
         {/* FAQs */}
-        <section className="space-y-6 max-w-3xl mx-auto">
-          <h2 className="text-xl font-bold text-center uppercase tracking-widest">{t.faqTitle}</h2>
-          <div className="space-y-4">
+        <section className="space-y-4 max-w-2xl mx-auto">
+          <h2 className="text-lg font-bold text-center uppercase tracking-wider">{t.faqTitle}</h2>
+          <div className="space-y-3">
             {faqs.map((faq, idx) => {
               const active = activeFaq === idx;
               return (
-                <div key={idx} className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-secondary)]/50">
+                <div key={idx} className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-secondary)]/50 text-xs">
                   <button
                     onClick={() => setActiveFaq(active ? null : idx)}
-                    className="w-full p-5 flex items-center justify-between text-left font-bold text-sm hover:bg-[var(--bg-tertiary)]/50 transition-colors"
+                    className="w-full p-4 flex items-center justify-between font-bold"
                   >
                     <span>{lang === 'fr' ? faq.qFr : faq.qEn}</span>
                     {active ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   {active && (
-                    <div className="p-5 border-t border-[var(--border)] text-xs text-[var(--text-secondary)] leading-relaxed bg-[var(--bg-primary)]">
+                    <div className="p-4 border-t border-[var(--border)] text-[11px] text-[var(--text-secondary)] leading-relaxed bg-[var(--bg-primary)]">
                       {lang === 'fr' ? faq.aFr : faq.aEn}
                     </div>
                   )}
@@ -555,70 +562,62 @@ export default function LandingPage() {
             })}
           </div>
         </section>
-
-        {/* Platform info */}
-        <section className="glass-panel p-8 text-center space-y-6 max-w-3xl mx-auto">
-          <h2 className="text-xl font-bold uppercase tracking-widest">{t.authorSection}</h2>
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-xl mx-auto">
-            {t.authorText}
-          </p>
-        </section>
       </main>
 
-      {/* Auth Modal Overlay */}
+      {/* Auth Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-panel p-8 w-full max-w-md space-y-6 relative bg-[var(--bg-secondary)] border-slate-700/60 shadow-2xl">
+          <div className="glass-panel p-6 w-full max-w-sm space-y-5 relative bg-[var(--bg-secondary)] border-slate-700/60 shadow-2xl">
             <button
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white text-xl font-bold transition-colors"
+              className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white text-lg font-bold transition-colors"
             >
               ✕
             </button>
 
-            <div className="space-y-2 text-center">
-              <h2 className="text-2xl font-bold">{isLogin ? t.authTitleLogin : t.authTitleReg}</h2>
-              <p className="text-xs text-[var(--text-muted)]">
+            <div className="space-y-1.5 text-center">
+              <h2 className="text-xl font-bold">{isLogin ? t.authTitleLogin : t.authTitleReg}</h2>
+              <p className="text-[10px] text-[var(--text-muted)]">
                 {isLogin ? "Saisissez vos identifiants d'accès" : "Rejoignez le programme dès aujourd'hui"}
               </p>
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold text-center">
+              <div className="p-2.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold text-center">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               {!isLogin && (
                 <div>
-                  <label className="block text-xs font-semibold mb-1 text-[var(--text-secondary)]">{t.namePl}</label>
+                  <label className="block text-[10px] font-bold mb-1 text-[var(--text-secondary)] uppercase tracking-wider">{t.namePl}</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full premium-input text-sm"
+                    className="w-full premium-input text-xs"
                     placeholder="John Doe"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold mb-1 text-[var(--text-secondary)]">{t.emailPl}</label>
+                <label className="block text-[10px] font-bold mb-1 text-[var(--text-secondary)] uppercase tracking-wider">{t.emailPl}</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full premium-input text-sm"
+                  className="w-full premium-input text-xs"
                   placeholder="name@university.com"
                 />
               </div>
 
               {isLogin && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mt-2">
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       id="isAdmin"
@@ -626,20 +625,20 @@ export default function LandingPage() {
                       onChange={(e) => setIsAdmin(e.target.checked)}
                       className="rounded border-slate-700 text-blue-600 bg-slate-900 focus:ring-blue-500"
                     />
-                    <label htmlFor="isAdmin" className="text-xs font-medium text-[var(--text-secondary)] cursor-pointer">
+                    <label htmlFor="isAdmin" className="text-[10px] font-bold text-[var(--text-secondary)] cursor-pointer">
                       {t.adminLoginCheck}
                     </label>
                   </div>
 
                   {isAdmin && (
                     <div>
-                      <label className="block text-xs font-semibold mb-1 text-[var(--text-secondary)]">{t.adminPassPl}</label>
+                      <label className="block text-[10px] font-bold mb-1 text-[var(--text-secondary)] uppercase tracking-wider">{t.adminPassPl}</label>
                       <input
                         type="password"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full premium-input text-sm"
+                        className="w-full premium-input text-xs"
                         placeholder="••••••••"
                       />
                     </div>
@@ -650,20 +649,19 @@ export default function LandingPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider transition-all"
               >
                 {loading ? "Vérification..." : t.authBtn}
-                <ChevronRight className="w-4 h-4" />
               </button>
             </form>
 
-            <div className="text-center pt-2">
+            <div className="text-center pt-1.5">
               <button
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError('');
                 }}
-                className="text-xs font-semibold text-blue-400 hover:underline"
+                className="text-[10px] font-bold text-blue-400 hover:underline"
               >
                 {isLogin ? t.authSubReg : t.authSubLogin}
               </button>
@@ -672,8 +670,20 @@ export default function LandingPage() {
         </div>
       )}
 
+      {/* Fixed bottom navigation bar for mobile webapp feel */}
+      <div className="mobile-nav-bar">
+        <button onClick={() => router.push('/')} className="flex flex-col items-center gap-0.5 text-blue-500">
+          <Compass className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Explorer</span>
+        </button>
+        <button onClick={() => { setIsLogin(true); setShowAuthModal(true); }} className="flex flex-col items-center gap-0.5 text-[var(--text-muted)] hover:text-blue-500">
+          <User className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Connexion</span>
+        </button>
+      </div>
+
       {/* Footer */}
-      <footer className="py-8 text-center text-xs text-[var(--text-muted)] border-t border-[var(--border)]">
+      <footer className="py-8 text-center text-[10px] text-[var(--text-muted)] border-t border-[var(--border)] mb-12 md:mb-0">
         {t.footer}
       </footer>
     </div>

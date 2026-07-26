@@ -17,7 +17,7 @@ export interface User {
   name: string;
   lang: 'fr' | 'en';
   isAdmin: boolean;
-  courses: Record<string, CourseProgress>; // e.g. "algo-101": CourseProgress
+  courses: Record<string, CourseProgress>;
   createdAt: string;
   lastActiveAt: string;
 }
@@ -27,14 +27,24 @@ export interface Attempt {
   lessonId: string;
   lang: 'js' | 'c' | 'react' | 'java' | 'springboot' | 'php' | 'python';
   code: string;
-  score: number; // 0 to 100
+  score: number;
   passed: boolean;
+  timestamp: string;
+}
+
+export interface Review {
+  email: string;
+  name: string;
+  courseId: string;
+  rating: number; // 1 to 5
+  comment: string;
   timestamp: string;
 }
 
 export interface DBState {
   users: User[];
   attempts: Attempt[];
+  reviews: Review[];
   kpis: {
     recaptchaBlocks: number;
     blobApiCalls: number;
@@ -57,6 +67,24 @@ const INITIAL_DB: DBState = {
     }
   ],
   attempts: [],
+  reviews: [
+    {
+      email: 'stephane@lickrotech.com',
+      name: 'Stéphane Ndjolo',
+      courseId: 'algo-101',
+      rating: 5,
+      comment: "Le cours d'algorithmes et logigrammes m'a permis de structurer ma pensée logique. Le playground interactif est génial.",
+      timestamp: new Date().toISOString()
+    },
+    {
+      email: 'elise@lickrotech.com',
+      name: 'Elise Mbarga',
+      courseId: 'springboot-202',
+      rating: 5,
+      comment: "Spring Boot est complexe, mais les diagrammes et exercices progressifs ont rendu le cours accessible. Certificat validé du premier coup !",
+      timestamp: new Date().toISOString()
+    }
+  ],
   kpis: {
     recaptchaBlocks: 0,
     blobApiCalls: 0,
@@ -70,11 +98,13 @@ async function readDB(): Promise<DBState> {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!token) {
-    // Local JSON File Fallback
     if (fs.existsSync(LOCAL_DB_PATH)) {
       try {
         const fileContent = fs.readFileSync(LOCAL_DB_PATH, 'utf8');
-        return JSON.parse(fileContent);
+        const parsed = JSON.parse(fileContent);
+        // Ensure reviews exists in legacy local_db
+        if (!parsed.reviews) parsed.reviews = INITIAL_DB.reviews;
+        return parsed;
       } catch (e) {
         console.error('Error reading local db, resetting:', e);
         return INITIAL_DB;
@@ -84,12 +114,10 @@ async function readDB(): Promise<DBState> {
     return INITIAL_DB;
   }
 
-  // Vercel Blob Database
   try {
     const { blobs } = await list({ token });
     const dbBlob = blobs.find((b) => b.pathname === 'lickrotech_db.json');
     if (!dbBlob) {
-      // Initialize Blob
       await put('lickrotech_db.json', JSON.stringify(INITIAL_DB), {
         access: 'public',
         addRandomSuffix: false,
@@ -99,6 +127,7 @@ async function readDB(): Promise<DBState> {
     }
     const response = await fetch(dbBlob.url);
     const data = await response.json();
+    if (!data.reviews) data.reviews = INITIAL_DB.reviews;
     return data;
   } catch (error) {
     console.error('Error reading from Vercel Blob:', error);
@@ -111,12 +140,10 @@ async function writeDB(state: DBState): Promise<void> {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!token) {
-    // Local JSON File Fallback
     fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(state, null, 2), 'utf8');
     return;
   }
 
-  // Vercel Blob
   try {
     await put('lickrotech_db.json', JSON.stringify(state), {
       access: 'public',
@@ -159,14 +186,23 @@ export async function saveAttempt(attempt: Attempt): Promise<void> {
   await writeDB(db);
 }
 
-export async function getAttemptsByEmail(email: string): Promise<Attempt[]> {
-  const db = await readDB();
-  return db.attempts.filter((a) => a.email.toLowerCase() === email.toLowerCase());
-}
-
 export async function getAllAttempts(): Promise<Attempt[]> {
   const db = await readDB();
   return db.attempts;
+}
+
+// Reviews helper methods
+export async function saveReview(review: Review): Promise<void> {
+  const db = await readDB();
+  // Filter out any existing reviews by this user for this specific course
+  db.reviews = db.reviews.filter((r) => !(r.email.toLowerCase() === review.email.toLowerCase() && r.courseId === review.courseId));
+  db.reviews.push(review);
+  await writeDB(db);
+}
+
+export async function getAllReviews(): Promise<Review[]> {
+  const db = await readDB();
+  return db.reviews;
 }
 
 // KPI incrementers
