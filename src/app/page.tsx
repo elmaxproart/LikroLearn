@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, Award, CheckCircle, Code, ShieldCheck, ChevronRight, Sun, Moon, Globe, Terminal, ChevronDown, ChevronUp, Search, UserCheck, Play, ArrowRight, HelpCircle, Star } from 'lucide-react';
 import { COURSES } from '@/lib/courseData';
 
 export default function LandingPage() {
@@ -12,9 +12,17 @@ export default function LandingPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+
   // Interactive syllabus expansion state
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
+
+  // FAQ active indexes
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   // Form states
   const [email, setEmail] = useState('');
@@ -128,68 +136,156 @@ export default function LandingPage() {
     setExpandedModuleId(expandedModuleId === modId ? null : modId);
   };
 
+  // Filter logic
+  const filteredCourses = COURSES.filter((course) => {
+    const matchesSearch = 
+      course.titleFr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.titleEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.descriptionFr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.descriptionEn.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
+    
+    const matchesDifficulty = selectedDifficulty === 'all' || 
+      (selectedDifficulty === 'beginner' && (course.difficultyEn === 'Beginner' || course.difficultyFr === 'Débutant')) ||
+      (selectedDifficulty === 'intermediate' && (course.difficultyEn === 'Intermediate' || course.difficultyFr === 'Intermédiaire')) ||
+      (selectedDifficulty === 'advanced' && (course.difficultyEn === 'Advanced' || course.difficultyFr === 'Avancé'));
+
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
+
+  const categories = [
+    { id: 'all', labelFr: 'Tous', labelEn: 'All' },
+    { id: 'algo', labelFr: 'Algorithmes', labelEn: 'Algorithms' },
+    { id: 'front', labelFr: 'Front-End', labelEn: 'Front-End' },
+    { id: 'back', labelFr: 'Back-End', labelEn: 'Back-End' },
+    { id: 'web', labelFr: 'Web Classique', labelEn: 'Classic Web' },
+    { id: 'oop', labelFr: 'Java POO', labelEn: 'Java OOP' },
+    { id: 'python', labelFr: 'Python', labelEn: 'Python' },
+  ];
+
+  const faqs = [
+    {
+      qFr: "Comment fonctionne la certification unique ?",
+      qEn: "How does the single-attempt certification work?",
+      aFr: "Pour chaque formation, vous avez accès à des leçons et des exercices pratiques. L'examen final ne peut être tenté qu'une seule fois. Si vous obtenez 70% ou plus, votre certificat est généré.",
+      aEn: "For each program, you have lessons and exercises. The final exam can only be taken once. If you score 70% or higher, your official certificate is unlocked."
+    },
+    {
+      qFr: "Est-ce gratuit ?",
+      qEn: "Is it free?",
+      aFr: "Oui, lickrotechLearn est un outil éducatif de Lickrotechnologie pour encourager l'apprentissage des sciences de l'informatique.",
+      aEn: "Yes, lickrotechLearn is an educational platform by Lickrotechnologie to foster computer science engineering learning."
+    },
+    {
+      qFr: "Puis-je exporter mes certificats ?",
+      qEn: "Can I export my certificates?",
+      aFr: "Absolument. Une fois réussi, le certificat s'affiche dans un format officiel optimisé pour l'impression (A4) ou l'export PDF/LinkedIn.",
+      aEn: "Absolutely. Once passed, the certificate is rendered in an official A4 layout ready to print or export to PDF and share on LinkedIn."
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Stéphane Ndjolo",
+      roleFr: "Développeur Full-Stack Certifié",
+      roleEn: "Certified Full-Stack Developer",
+      commentFr: "Le cours d'algorithmes et logigrammes m'a permis de structurer ma pensée logique avant d'attaquer React. Le système d'exercice en direct est génial.",
+      commentEn: "The algorithms and flowchart course helped me structure my logical layout before starting React. The live interactive console is outstanding."
+    },
+    {
+      name: "Elise Mbarga",
+      roleFr: "Ingénieur Backend Junior",
+      roleEn: "Junior Backend Engineer",
+      commentFr: "Spring Boot est complexe, mais les diagrammes et exercices progressifs ont rendu le cours accessible. Certificat validé du premier coup !",
+      commentEn: "Spring Boot can be challenging, but the diagrams and exercises made it super accessible. Certificate unlocked on the first attempt!"
+    }
+  ];
+
   const t = {
     fr: {
-      catalogTitle: "Programmes Certifiants Actifs",
-      catalogSub: "Parcourez le cursus et cliquez pour explorer les chapitres de la leçon.",
-      heroTitle: "L'excellence académique à portée de code.",
-      heroSub: "Intégrez le premier programme certifiant complet sur l'algorithmique et la programmation web et système.",
+      catalogTitle: "Parcourez notre catalogue académique",
+      catalogSub: "Des formations ciblées avec sandbox de validation et examens officiels.",
+      heroTitle: "L'excellence des compétences systèmes et web.",
+      heroSub: "Explorez nos spécialisations interactives conçues par Tene Bana Maxym. Du pseudo-code aux composants Next.js, apprenez avec rigueur.",
       badge: "LICKROTECHNOLOGIE ACADEMY",
       authTitleLogin: "Se connecter",
-      authTitleReg: "Rejoindre le Cursus",
+      authTitleReg: "Rejoindre la formation",
       emailPl: "Adresse email académique",
-      namePl: "Votre nom complet",
-      adminLoginCheck: "Connexion Administrateur",
-      adminPassPl: "Code de sécurité",
-      authBtn: "Valider ma demande",
-      authSubReg: "Nouveau candidat ? Créer un compte",
+      namePl: "Nom complet",
+      adminLoginCheck: "Accès Enseignant/Admin",
+      adminPassPl: "Code de sécurité admin",
+      authBtn: "Entrer dans l'espace",
+      authSubReg: "Nouveau candidat ? S'inscrire",
       authSubLogin: "Déjà candidat ? Se connecter",
-      authorSection: "Supervision Académique",
-      authorText: "Le programme est rédigé et validé par Tene Bana Maxym, Lead Software Architect, garantissant une insertion directe vers les exigences de l'industrie.",
-      enrollBtn: "S'inscrire et commencer",
-      difficulty: "Niveau",
+      authorSection: "À propos de la plateforme",
+      authorText: "LickrotechLearn réunit les technologies exigées dans l'industrie pour former des ingénieurs opérationnels immédiatement.",
+      enrollBtn: "S'inscrire et démarrer",
+      difficulty: "Difficulté",
       author: "Superviseur",
-      viewSyllabus: "Explorer le programme (Syllabus)",
-      hideSyllabus: "Refermer le programme",
-      syllabusOverview: "Contenu de la formation",
+      viewSyllabus: "Afficher le Syllabus de la leçon",
+      hideSyllabus: "Refermer le Syllabus",
+      syllabusOverview: "Contenu académique",
+      searchPl: "Rechercher une formation, un langage...",
+      diffAll: "Toutes les difficultés",
+      diffBeg: "Débutant",
+      diffInt: "Intermédiaire",
+      diffAdv: "Avancé",
+      statsStudents: "Candidats inscrits",
+      statsCourses: "Programmes complets",
+      statsCertifs: "Certificats décernés",
+      statsRate: "Taux de réussite",
+      faqTitle: "Foire Aux Questions",
+      reviewsTitle: "Retours d'expérience candidats",
       footer: "© 2026 Lickrotechnologie - lickrotechLearn. Tous droits réservés."
     },
     en: {
-      catalogTitle: "Active Certification Programs",
-      catalogSub: "Browse the curriculum and click to explore the lesson contents.",
-      heroTitle: "Academic excellence, powered by code.",
-      heroSub: "Join the flagship certification program in algorithmics and systems/web programming.",
+      catalogTitle: "Explore our Academic Catalog",
+      catalogSub: "Targeted programs featuring code compilers and single-attempt exams.",
+      heroTitle: "Bridge the gap between logic and real systems.",
+      heroSub: "Explore interactive specializations designed by Tene Bana Maxym. From pseudo-code diagrams to Next.js APIs, master it all.",
       badge: "LICKROTECHNOLOGIE ACADEMY",
       authTitleLogin: "Student Login",
-      authTitleReg: "Join Curriculum",
+      authTitleReg: "Apply for Course",
       emailPl: "Academic email address",
-      namePl: "Your full name",
-      adminLoginCheck: "Administrator Login",
-      adminPassPl: "Security code",
-      authBtn: "Verify and Enter",
+      namePl: "Full name",
+      adminLoginCheck: "Supervisor/Admin Login",
+      adminPassPl: "Admin security password",
+      authBtn: "Enter Dashboard",
       authSubReg: "New applicant? Register here",
-      authSubLogin: "Enrolled student? Sign In",
-      authorSection: "Academic Supervision",
-      authorText: "The curriculum is authored and validated by Tene Bana Maxym, Lead Software Architect, ensuring alignments with industry demands.",
+      authSubLogin: "Registered candidate? Sign In",
+      authorSection: "About the platform",
+      authorText: "LickrotechLearn bundles the exact technology stacks demanded in production to train software engineers.",
       enrollBtn: "Enroll and Start",
-      difficulty: "Level",
+      difficulty: "Difficulty",
       author: "Supervisor",
-      viewSyllabus: "Explore syllabus content",
-      hideSyllabus: "Close syllabus content",
-      syllabusOverview: "Syllabus Overview",
+      viewSyllabus: "Explore course syllabus",
+      hideSyllabus: "Close course syllabus",
+      syllabusOverview: "Syllabus details",
+      searchPl: "Search courses, tags, technologies...",
+      diffAll: "All difficulties",
+      diffBeg: "Beginner",
+      diffInt: "Intermediate",
+      diffAdv: "Advanced",
+      statsStudents: "Registered students",
+      statsCourses: "Full courses",
+      statsCertifs: "Issued certificates",
+      statsRate: "Success rate",
+      faqTitle: "Frequently Asked Questions",
+      reviewsTitle: "Candidate Reviews",
       footer: "© 2026 Lickrotechnologie - lickrotechLearn. All rights reserved."
     }
   }[lang];
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      {/* Mesh Grid Background */}
+      {/* Mesh Background */}
       <div className="grid-bg"></div>
 
-      {/* Header */}
+      {/* Navigation Header */}
       <header className="sticky top-0 z-40 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg">L</div>
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="Lickrotech Logo" className="w-8 h-8 object-contain" />
           <div>
             <span className="font-extrabold tracking-tight text-lg">lickrotech</span>
             <span className="text-blue-500 font-semibold text-sm ml-1">Learn</span>
@@ -212,44 +308,111 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-16 space-y-16">
+      {/* Main Container */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-12 space-y-16">
         
-        {/* Elite Centered Hero */}
-        <section className="text-center space-y-6 py-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-widest uppercase">
+        {/* Massive Hero Section */}
+        <section className="text-center space-y-8 py-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold tracking-widest uppercase">
             <Award className="w-4 h-4 text-emerald-400" />
             {t.badge}
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl mx-auto">
             {t.heroTitle}
           </h1>
-          <p className="text-lg text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto">
             {t.heroSub}
           </p>
         </section>
 
-        {/* Course Catalog */}
+        {/* Global Statistics Counter */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 glass-panel border-[var(--border)] bg-[var(--glass-bg)] text-center">
+          <div>
+            <p className="text-3xl font-extrabold text-blue-500">1,540+</p>
+            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsStudents}</p>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-emerald-500">6</p>
+            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsCourses}</p>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-indigo-500">420+</p>
+            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsCertifs}</p>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-amber-500">92%</p>
+            <p className="text-xs text-[var(--text-muted)] font-semibold uppercase mt-1">{t.statsRate}</p>
+          </div>
+        </section>
+
+        {/* Catalog Search & Multi-Filters Layout */}
         <section className="space-y-6">
-          <div className="border-b border-[var(--border)] pb-4 text-center sm:text-left">
-            <h2 className="text-2xl font-bold">{t.catalogTitle}</h2>
-            <p className="text-sm text-[var(--text-muted)] mt-1">{t.catalogSub}</p>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+            <div>
+              <h2 className="text-2xl font-bold">{t.catalogTitle}</h2>
+              <p className="text-xs text-[var(--text-muted)] mt-1">{t.catalogSub}</p>
+            </div>
+
+            {/* Difficulty Filter Dropdown */}
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(e.target.value)}
+                className="premium-input text-xs font-semibold"
+              >
+                <option value="all">{t.diffAll}</option>
+                <option value="beginner">{t.diffBeg}</option>
+                <option value="intermediate">{t.diffInt}</option>
+                <option value="advanced">{t.diffAdv}</option>
+              </select>
+            </div>
           </div>
 
+          {/* Search bar & Category filter pills */}
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-3.5 w-5 h-5 text-[var(--text-muted)]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t.searchPl}
+                className="w-full pl-12 pr-4 py-3.5 premium-input text-sm"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                    selectedCategory === cat.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-slate-500'
+                  }`}
+                >
+                  {lang === 'fr' ? cat.labelFr : cat.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Catalog grid */}
           <div className="space-y-6">
-            {COURSES.map((course) => {
+            {filteredCourses.map((course) => {
               const isSyllabusOpen = expandedCourseId === course.id;
 
               return (
-                <div key={course.id} className="glass-panel overflow-hidden transition-all duration-300">
+                <div key={course.id} className="glass-panel overflow-hidden transition-all duration-300 border-[var(--border)]">
                   <div className="grid grid-cols-1 md:grid-cols-12">
                     
-                    {/* Cover image left */}
+                    {/* Course Card Cover */}
                     <div className="md:col-span-4 h-48 md:h-full min-h-[220px] relative overflow-hidden">
                       <img src={course.imageUrl} alt={course.titleFr} className="w-full h-full object-cover transition-transform hover:scale-105 duration-700" />
                     </div>
 
-                    {/* Card Content right */}
+                    {/* Course Card Detail */}
                     <div className="md:col-span-8 p-6 md:p-8 flex flex-col justify-between space-y-6">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -291,7 +454,7 @@ export default function LandingPage() {
                   {/* Interactive modules/lessons display drawer */}
                   {isSyllabusOpen && (
                     <div className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-6 md:p-8 space-y-6">
-                      <h4 className="text-lg font-bold text-blue-500 border-b border-[var(--border)] pb-2">
+                      <h4 className="text-sm font-bold text-blue-500 border-b border-[var(--border)] pb-2 uppercase tracking-widest">
                         {t.syllabusOverview}
                       </h4>
 
@@ -330,7 +493,7 @@ export default function LandingPage() {
 
                         {/* Exam module representation */}
                         <div className="p-4 border border-blue-500/30 rounded-xl bg-gradient-to-r from-blue-600/10 to-indigo-600/10 flex items-center justify-between text-sm font-semibold">
-                          <span>5. {lang === 'fr' ? 'Examen de Certification Finale' : 'Final Certification Exam'}</span>
+                          <span>{lang === 'fr' ? 'Examen de Certification Finale' : 'Final Certification Exam'}</span>
                           <span className="text-xs px-2.5 py-1 bg-blue-500/20 text-blue-400 rounded-md">70% min</span>
                         </div>
                       </div>
@@ -342,18 +505,63 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Academic Supervision details */}
-        <section className="glass-panel p-8 text-center space-y-6 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold">{t.authorSection}</h2>
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-emerald-500 flex items-center justify-center text-white font-extrabold text-xl shadow-xl">
-              TBM
-            </div>
-            <h3 className="text-lg font-bold text-blue-400">Tene Bana Maxym</h3>
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-xl">
-              {t.authorText}
-            </p>
+        {/* Student Testimonials */}
+        <section className="space-y-6">
+          <h2 className="text-xl font-bold text-center uppercase tracking-widest">{t.reviewsTitle}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {testimonials.map((testi, idx) => (
+              <div key={idx} className="p-6 glass-panel border-[var(--border)] flex flex-col justify-between">
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed italic">
+                  "{lang === 'fr' ? testi.commentFr : testi.commentEn}"
+                </p>
+                <div className="pt-4 border-t border-[var(--border)] mt-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-sm">{testi.name}</h4>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{lang === 'fr' ? testi.roleFr : testi.roleEn}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-current" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+        </section>
+
+        {/* FAQs */}
+        <section className="space-y-6 max-w-3xl mx-auto">
+          <h2 className="text-xl font-bold text-center uppercase tracking-widest">{t.faqTitle}</h2>
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => {
+              const active = activeFaq === idx;
+              return (
+                <div key={idx} className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-secondary)]/50">
+                  <button
+                    onClick={() => setActiveFaq(active ? null : idx)}
+                    className="w-full p-5 flex items-center justify-between text-left font-bold text-sm hover:bg-[var(--bg-tertiary)]/50 transition-colors"
+                  >
+                    <span>{lang === 'fr' ? faq.qFr : faq.qEn}</span>
+                    {active ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {active && (
+                    <div className="p-5 border-t border-[var(--border)] text-xs text-[var(--text-secondary)] leading-relaxed bg-[var(--bg-primary)]">
+                      {lang === 'fr' ? faq.aFr : faq.aEn}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Platform info */}
+        <section className="glass-panel p-8 text-center space-y-6 max-w-3xl mx-auto">
+          <h2 className="text-xl font-bold uppercase tracking-widest">{t.authorSection}</h2>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-xl mx-auto">
+            {t.authorText}
+          </p>
         </section>
       </main>
 
@@ -371,7 +579,7 @@ export default function LandingPage() {
             <div className="space-y-2 text-center">
               <h2 className="text-2xl font-bold">{isLogin ? t.authTitleLogin : t.authTitleReg}</h2>
               <p className="text-xs text-[var(--text-muted)]">
-                {isLogin ? "Accéder à mon espace candidat" : "Créer mes accès candidat officiels"}
+                {isLogin ? "Saisissez vos identifiants d'accès" : "Rejoignez le programme dès aujourd'hui"}
               </p>
             </div>
 

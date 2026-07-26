@@ -61,8 +61,8 @@ export default function AdminDashboard() {
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg">L</div>
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="Lickrotech Logo" className="w-8 h-8 object-contain" />
           <div>
             <span className="font-extrabold tracking-tight text-lg">lickrotech</span>
             <span className="text-blue-500 font-semibold text-sm ml-1">Learn Admin</span>

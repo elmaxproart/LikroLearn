@@ -25,7 +25,7 @@ export interface User {
 export interface Attempt {
   email: string;
   lessonId: string;
-  lang: 'js' | 'c';
+  lang: 'js' | 'c' | 'react' | 'java' | 'springboot' | 'php' | 'python';
   code: string;
   score: number; // 0 to 100
   passed: boolean;

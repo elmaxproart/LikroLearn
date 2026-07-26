@@ -14,6 +14,7 @@ export default function StudentDashboard() {
   // Selected course for rendering modules
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [enrollLoading, setEnrollLoading] = useState(false);
+  const [dashboardCategory, setDashboardCategory] = useState<string>('all');
 
   useEffect(() => {
     // Check auth
@@ -171,8 +172,8 @@ export default function StudentDashboard() {
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg">L</div>
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="Lickrotech Logo" className="w-8 h-8 object-contain" />
           <div>
             <span className="font-extrabold tracking-tight text-lg">lickrotech</span>
             <span className="text-blue-500 font-semibold text-sm ml-1">Learn</span>
@@ -237,9 +238,28 @@ export default function StudentDashboard() {
         {/* Recommended catalog list */}
         {COURSES.filter((c) => !enrolledCourseIds.includes(c.id)).length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-bold uppercase tracking-widest">{t.catalogTitle}</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h2 className="text-lg font-bold uppercase tracking-widest">{t.catalogTitle}</h2>
+              <div className="flex flex-wrap gap-1.5">
+                {['all', 'algo', 'front', 'back', 'web', 'oop', 'python'].map((catId) => (
+                  <button
+                    key={catId}
+                    onClick={() => setDashboardCategory(catId)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all ${
+                      dashboardCategory === catId
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-slate-500'
+                    }`}
+                  >
+                    {catId.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {COURSES.filter((c) => !enrolledCourseIds.includes(c.id)).map((course) => (
+              {COURSES.filter(
+                (c) => !enrolledCourseIds.includes(c.id) && (dashboardCategory === 'all' || c.category === dashboardCategory)
+              ).map((course) => (
                 <div key={course.id} className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)]/60 flex flex-col justify-between hover:border-blue-500/35 transition-all">
                   <div className="space-y-2">
                     <h3 className="font-bold text-base">
