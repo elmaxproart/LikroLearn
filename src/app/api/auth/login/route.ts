@@ -19,13 +19,17 @@ export async function POST(req: Request) {
     const user = await getUserByEmail(email);
 
     if (isAdminLogin) {
-      if (email.toLowerCase() === 'admin@lickrotech.com' && password === 'maxym2026') {
+      const isOldAdmin = email.toLowerCase() === 'admin@lickrotech.com' && password === 'maxym2026';
+      const isNewAdmin = email.toLowerCase() === 'likrotechtest@gmail.com' && password === 'likrotech2026';
+
+      if (isOldAdmin || isNewAdmin) {
         if (!user) {
           const adminUser = {
-            email: 'admin@lickrotech.com',
-            name: 'Tene Bana Maxym',
+            email: email.toLowerCase(),
+            name: isOldAdmin ? 'Tene Bana Maxym' : 'Lickrotech Administrator',
             lang: 'fr' as const,
             isAdmin: true,
+            role: 'admin' as const,
             courses: {},
             createdAt: new Date().toISOString(),
             lastActiveAt: new Date().toISOString(),
@@ -39,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     if (!user) {
-      return NextResponse.json({ error: 'Student account not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
     user.lastActiveAt = new Date().toISOString();
@@ -51,3 +55,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+export const dynamic = 'force-dynamic';

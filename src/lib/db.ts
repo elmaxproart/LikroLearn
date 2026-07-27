@@ -1,6 +1,7 @@
 import { put, list } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
+import { Course } from './courseData';
 
 export interface CourseProgress {
   progress: Record<string, boolean>;
@@ -17,6 +18,7 @@ export interface User {
   name: string;
   lang: 'fr' | 'en';
   isAdmin: boolean;
+  role: 'student' | 'instructor' | 'admin';
   courses: Record<string, CourseProgress>;
   createdAt: string;
   lastActiveAt: string;
@@ -45,6 +47,7 @@ export interface DBState {
   users: User[];
   attempts: Attempt[];
   reviews: Review[];
+  customCourses: Course[];
   kpis: {
     recaptchaBlocks: number;
     blobApiCalls: number;
@@ -61,6 +64,17 @@ const INITIAL_DB: DBState = {
       name: 'Tene Bana Maxym',
       lang: 'fr',
       isAdmin: true,
+      role: 'admin',
+      courses: {},
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+    },
+    {
+      email: 'likrotechtest@gmail.com',
+      name: 'Lickrotech Administrator',
+      lang: 'fr',
+      isAdmin: true,
+      role: 'admin',
       courses: {},
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
@@ -85,6 +99,7 @@ const INITIAL_DB: DBState = {
       timestamp: new Date().toISOString()
     }
   ],
+  customCourses: [],
   kpis: {
     recaptchaBlocks: 0,
     blobApiCalls: 0,
@@ -102,8 +117,8 @@ async function readDB(): Promise<DBState> {
       try {
         const fileContent = fs.readFileSync(LOCAL_DB_PATH, 'utf8');
         const parsed = JSON.parse(fileContent);
-        // Ensure reviews exists in legacy local_db
         if (!parsed.reviews) parsed.reviews = INITIAL_DB.reviews;
+        if (!parsed.customCourses) parsed.customCourses = INITIAL_DB.customCourses;
         return parsed;
       } catch (e) {
         console.error('Error reading local db, resetting:', e);
@@ -128,6 +143,7 @@ async function readDB(): Promise<DBState> {
     const response = await fetch(dbBlob.url);
     const data = await response.json();
     if (!data.reviews) data.reviews = INITIAL_DB.reviews;
+    if (!data.customCourses) data.customCourses = INITIAL_DB.customCourses;
     return data;
   } catch (error) {
     console.error('Error reading from Vercel Blob:', error);
@@ -167,7 +183,9 @@ export async function saveUser(user: User): Promise<void> {
   const db = await readDB();
   const index = db.users.findIndex((u) => u.email.toLowerCase() === user.email.toLowerCase());
   if (index >= 0) {
-    db.users[index] = { ...user, lastActiveAt: new Date().toISOString() };
+    // Retain legacy role assignment if absent
+    const role = user.role || db.users[index].role || 'student';
+    db.users[index] = { ...user, role, lastActiveAt: new Date().toISOString() };
   } else {
     db.users.push(user);
   }
@@ -194,7 +212,6 @@ export async function getAllAttempts(): Promise<Attempt[]> {
 // Reviews helper methods
 export async function saveReview(review: Review): Promise<void> {
   const db = await readDB();
-  // Filter out any existing reviews by this user for this specific course
   db.reviews = db.reviews.filter((r) => !(r.email.toLowerCase() === review.email.toLowerCase() && r.courseId === review.courseId));
   db.reviews.push(review);
   await writeDB(db);
@@ -203,6 +220,19 @@ export async function saveReview(review: Review): Promise<void> {
 export async function getAllReviews(): Promise<Review[]> {
   const db = await readDB();
   return db.reviews;
+}
+
+// Custom courses helpers
+export async function saveCustomCourse(course: Course): Promise<void> {
+  const db = await readDB();
+  db.customCourses = db.customCourses.filter((c) => c.id !== course.id);
+  db.customCourses.push(course);
+  await writeDB(db);
+}
+
+export async function getCustomCourses(): Promise<Course[]> {
+  const db = await readDB();
+  return db.customCourses || [];
 }
 
 // KPI incrementers

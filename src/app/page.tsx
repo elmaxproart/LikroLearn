@@ -42,6 +42,9 @@ export default function LandingPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [coursesList, setCoursesList] = useState<any[]>(COURSES);
+  const [signupRole, setSignupRole] = useState<'student' | 'instructor'>('student');
+
   // Load stats and reviews from DB
   const loadDynamicData = async () => {
     try {
@@ -55,6 +58,12 @@ export default function LandingPage() {
       const reviewsData = await reviewsRes.json();
       if (reviewsData.success) {
         setLiveReviews(reviewsData.reviews);
+      }
+
+      const coursesRes = await fetch('/api/course/list');
+      const coursesData = await coursesRes.json();
+      if (coursesData.success) {
+        setCoursesList(coursesData.courses);
       }
     } catch (e) {
       console.error('Error loading dynamic database info:', e);
@@ -115,7 +124,7 @@ export default function LandingPage() {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
       const bodyPayload = isLogin
         ? { email, recaptchaToken: token, isAdminLogin: isAdmin, password }
-        : { email, name, lang, recaptchaToken: token };
+        : { email, name, lang, recaptchaToken: token, role: signupRole };
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -180,7 +189,7 @@ export default function LandingPage() {
   };
 
   // Filter logic
-  const filteredCourses = COURSES.filter((course) => {
+  const filteredCourses = coursesList.filter((course) => {
     const matchesSearch = 
       course.titleFr.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.titleEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -508,7 +517,7 @@ export default function LandingPage() {
                         {t.syllabusOverview}
                       </h4>
                       <div className="space-y-3.5">
-                        {course.modules.map((mod) => {
+                        {course.modules.map((mod: any) => {
                           const isModuleOpen = expandedModuleId === mod.id;
                           return (
                             <div key={mod.id} className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--bg-primary)] text-xs">
@@ -521,7 +530,7 @@ export default function LandingPage() {
                               </button>
                               {isModuleOpen && (
                                 <div className="p-3 bg-[var(--bg-secondary)]/50 border-t border-[var(--border)] divide-y divide-[var(--border)]">
-                                  {mod.lessons.map((les) => (
+                                  {mod.lessons.map((les: any) => (
                                     <div key={les.id} className="py-2.5 flex items-center justify-between text-[11px] text-[var(--text-secondary)]">
                                       <span>{lang === 'fr' ? les.titleFr : les.titleEn}</span>
                                       <span className="text-[var(--text-muted)]">{les.duration}</span>
@@ -650,6 +659,20 @@ export default function LandingPage() {
                   placeholder="name@university.com"
                 />
               </div>
+
+              {!isLogin && (
+                <div>
+                  <label className="block text-[10px] font-bold mb-1 text-[var(--text-secondary)] uppercase tracking-wider">Statut / Role</label>
+                  <select
+                    value={signupRole}
+                    onChange={(e) => setSignupRole(e.target.value as 'student' | 'instructor')}
+                    className="w-full premium-input text-xs"
+                  >
+                    <option value="student">{lang === 'fr' ? 'Apprenant / Étudiant' : 'Student / Learner'}</option>
+                    <option value="instructor">{lang === 'fr' ? 'Instructeur / Enseignant' : 'Instructor / Teacher'}</option>
+                  </select>
+                </div>
+              )}
 
               {isLogin && (
                 <div className="space-y-2.5">

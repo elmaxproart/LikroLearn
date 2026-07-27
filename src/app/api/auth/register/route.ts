@@ -4,7 +4,7 @@ import { verifyRecaptcha } from '@/lib/recaptcha';
 
 export async function POST(req: Request) {
   try {
-    const { email, name, lang, recaptchaToken } = await req.json();
+    const { email, name, lang, recaptchaToken, role } = await req.json();
 
     if (!email || !name || !lang) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
@@ -22,11 +22,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
 
+    const assignedRole = (role === 'instructor' ? 'instructor' : 'student') as 'student' | 'instructor';
+
     const newUser = {
-      email,
+      email: email.toLowerCase(),
       name,
       lang: lang as 'fr' | 'en',
       isAdmin: false,
+      role: assignedRole,
       courses: {}, // Empty enrollments map
       createdAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
@@ -40,3 +43,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+export const dynamic = 'force-dynamic';
