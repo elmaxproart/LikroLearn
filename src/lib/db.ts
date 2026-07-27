@@ -113,6 +113,12 @@ async function readDB(): Promise<DBState> {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!token) {
+    // Graceful Vercel fallback: if no token and running in serverless, use memory cache
+    if (process.env.VERCEL) {
+      if (!memoryCache) memoryCache = INITIAL_DB;
+      return memoryCache;
+    }
+
     if (fs.existsSync(LOCAL_DB_PATH)) {
       try {
         const fileContent = fs.readFileSync(LOCAL_DB_PATH, 'utf8');
@@ -125,7 +131,11 @@ async function readDB(): Promise<DBState> {
         return INITIAL_DB;
       }
     }
-    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(INITIAL_DB, null, 2), 'utf8');
+    try {
+      fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(INITIAL_DB, null, 2), 'utf8');
+    } catch (err) {
+      console.warn("Could not initialize local db file:", err);
+    }
     return INITIAL_DB;
   }
 
@@ -156,7 +166,15 @@ async function writeDB(state: DBState): Promise<void> {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!token) {
-    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(state, null, 2), 'utf8');
+    // Graceful Vercel fallback: do not execute local writes in read-only environment
+    if (process.env.VERCEL) {
+      return;
+    }
+    try {
+      fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(state, null, 2), 'utf8');
+    } catch (err) {
+      console.warn("Could not write to local db file:", err);
+    }
     return;
   }
 
@@ -183,7 +201,6 @@ export async function saveUser(user: User): Promise<void> {
   const db = await readDB();
   const index = db.users.findIndex((u) => u.email.toLowerCase() === user.email.toLowerCase());
   if (index >= 0) {
-    // Retain legacy role assignment if absent
     const role = user.role || db.users[index].role || 'student';
     db.users[index] = { ...user, role, lastActiveAt: new Date().toISOString() };
   } else {
