@@ -85,31 +85,67 @@ export const COURSES: Course[] = [
             titleEn: "What is an algorithm? From idea to logic",
             duration: "9 min",
             contentFr: `
-# Introduction à l'Algorithmique
-Un **algorithme** est une suite finie et ordonnée d'instructions permettant de résoudre un problème ou d'obtenir un résultat.
-- **Entrées** : Données fournies.
-- **Traitement** : Étapes logiques exécutées.
-- **Sorties** : Résultats renvoyés.
+# Qu'est-ce qu'un Algorithme ?
+Un **algorithme** est une suite **finie**, **ordonnée** et **non-ambiguë** d'instructions permettant de résoudre un problème donné ou d'obtenir un résultat.
+
+## Les 3 composantes fondamentales
+- **Entrées (Inputs)** : Les données fournies au départ (ex: largeur=5, hauteur=10).
+- **Traitement** : La séquence logique d'étapes exécutées sur ces données.
+- **Sorties (Outputs)** : Le(s) résultat(s) produit(s) (ex: Aire=50).
+
+## Exemple concret : Calculer l'aire d'un rectangle
+**Algorithme CalculerAire :**
+1. Lire la Largeur
+2. Lire la Hauteur
+3. Calculer Aire ← Largeur × Hauteur
+4. Retourner Aire
+
+## Propriétés d'un bon algorithme
+- **Finitude** : Il doit se terminer après un nombre fini d'étapes.
+- **Clarté** : Chaque instruction doit être non-ambiguë.
+- **Efficacité** : Il doit produire le bon résultat en un temps raisonnable.
+
+## Logigramme (Flowchart)
+Un logigramme est la représentation **graphique** d'un algorithme :
+- **Ovale** : Début ou Fin du programme.
+- **Rectangle** : Une action ou un traitement.
+- **Losange** : Une condition ou décision (Oui/Non).
+- **Flèches** : Le sens du flux d'exécution.
 `,
             contentEn: `
-# Introduction to Algorithms
-An **algorithm** is a finite sequence of instructions to solve a problem.
-- **Inputs**: Data provided.
-- **Processing**: Logic steps executed.
-- **Outputs**: Results returned.
+# What is an Algorithm?
+An **algorithm** is a **finite**, **ordered**, and **unambiguous** sequence of instructions to solve a given problem.
+
+## The 3 Fundamental Components
+- **Inputs**: Data provided upfront (e.g., width=5, height=10).
+- **Processing**: The logical sequence of steps executed on that data.
+- **Outputs**: The result(s) produced (e.g., Area=50).
+
+## Concrete Example: Calculate Rectangle Area
+**Algorithm CalculateArea:**
+1. Read Width
+2. Read Height
+3. Calculate Area ← Width × Height
+4. Return Area
+
+## Properties of a Good Algorithm
+- **Finiteness**: It must terminate after a finite number of steps.
+- **Clarity**: Each instruction must be unambiguous.
+- **Efficiency**: It must produce the correct result in reasonable time.
 `,
             attachmentUrl: "/attachments/algo_lesson_1_1.pdf",
-            attachmentName: "Fiche_Synthese_Introduction.pdf",
-            explanationFr: "L'aire d'un rectangle est le produit de sa largeur par sa hauteur.",
-            explanationEn: "The area of a rectangle is the product of its width by its height.",
+            attachmentName: "Fiche_Synthese_Introduction_Algorithmes.pdf",
+            explanationFr: "L'aire d'un rectangle se calcule en multipliant sa largeur par sa hauteur. En pseudo-code : `Aire ← Largeur × Hauteur`. En JavaScript, cela s'écrit `return largeur * hauteur;`. L'opérateur `*` représente la multiplication.",
+            explanationEn: "The area of a rectangle is calculated by multiplying its width by its height. In pseudocode: `Area ← Width × Height`. In JavaScript: `return largeur * hauteur;`.",
             exercise: {
-              questionFr: "Écrivez une fonction \`calculerAireRectangle(largeur, hauteur)\` qui retourne l'aire d'un rectangle.",
-              questionEn: "Write a function \`calculerAireRectangle(largeur, hauteur)\` that returns the area of a rectangle.",
+              questionFr: "Écrivez une fonction \`calculerAireRectangle(largeur, hauteur)\` qui retourne l'aire d'un rectangle (largeur × hauteur).",
+              questionEn: "Write a function \`calculerAireRectangle(largeur, hauteur)\` that returns the area of a rectangle (width × height).",
               lang: "js",
-              initialCode: "function calculerAireRectangle(largeur, hauteur) {\n  // Votre code ici\n}",
+              initialCode: "function calculerAireRectangle(largeur, hauteur) {\n  // Votre code ici\n  // Rappel : Aire = Largeur × Hauteur\n}",
               testCases: [
                 { input: "5, 10", expected: "50" },
-                { input: "3, 7", expected: "21" }
+                { input: "3, 7", expected: "21" },
+                { input: "1, 1", expected: "1" }
               ],
               solutionTemplate: "return largeur * hauteur;"
             }
@@ -121,24 +157,74 @@ An **algorithm** is a finite sequence of instructions to solve a problem.
             titleEn: "Pseudocode and writing conventions",
             duration: "7 min",
             contentFr: `
-# Pseudo-code
-Le **pseudo-code** est une description textuelle simplifiée d'un algorithme utilisant une syntaxe proche du langage humain.
+# Pseudo-code et Conventions d'Écriture
+Le **pseudo-code** est une description textuelle simplifiée d'un algorithme. Il utilise une syntaxe proche du français (ou de l'anglais) et sert de **pont** entre la réflexion logique et le vrai code.
+
+## Pourquoi le pseudo-code ?
+- Permet de **réfléchir** à la logique AVANT d'écrire du code.
+- **Indépendant** de tout langage de programmation.
+- Facilite la **communication** entre développeurs.
+
+## Conventions de base
+- **Affectation** : `variable ← valeur` (ex: `x ← 5`)
+- **Entrée** : `Lire(variable)`
+- **Sortie** : `Écrire(variable)` ou `Retourner(valeur)`
+- **Condition** : `Si (condition) Alors ... Sinon ... FinSi`
+- **Boucle** : `Tant que (condition) Faire ... FinTantQue`
+
+## Exemple : Échanger deux variables
+**Problème** : Échanger les valeurs de `a` et `b`.
+
+**Mauvaise approche** (perd une valeur !) :
+- a ← b
+- b ← a  ← (b vaut déjà la valeur de a !)
+
+**Bonne approche avec variable temporaire** :
+1. temp ← a
+2. a ← b
+3. b ← temp
+4. Retourner [b, a]
+
+## Règle d'or
+Un bon pseudo-code est **lisible par quelqu'un qui ne programme pas**.
 `,
             contentEn: `
-# Pseudocode
-**Pseudocode** is a simplified textual description of an algorithm using human-like syntax.
+# Pseudocode and Writing Conventions
+**Pseudocode** is a simplified textual description of an algorithm. It bridges logical thinking and actual code.
+
+## Why Pseudocode?
+- Lets you **think** through logic BEFORE writing code.
+- **Language-independent** — not tied to any programming language.
+- Helps **communicate** ideas between developers.
+
+## Basic Conventions
+- **Assignment**: \`variable ← value\` (e.g., \`x ← 5\`)
+- **Input**: \`Read(variable)\`
+- **Output**: \`Write(variable)\` or \`Return(value)\`
+- **Condition**: \`If (condition) Then ... Else ... EndIf\`
+- **Loop**: \`While (condition) Do ... EndWhile\`
+
+## Example: Swapping Two Variables
+**Problem**: Swap the values of \`a\` and \`b\`.
+
+**Correct approach using a temporary variable:**
+1. temp ← a
+2. a ← b
+3. b ← temp
+4. Return [b, a]
 `,
             attachmentUrl: "/attachments/algo_lesson_1_2.pdf",
-            attachmentName: "Cours_PseudoCode.pdf",
-            explanationFr: "Pour échanger deux variables, on utilise une variable temporaire : \`let temp = a; a = b; b = temp;\` et retourne \`[b, a]\`.",
-            explanationEn: "To swap two variables, we use a temporary variable: \`let temp = a; a = b; b = temp;\` and return \`[b, a]\`.",
+            attachmentName: "Cours_PseudoCode_et_Conventions.pdf",
+            explanationFr: "Le truc classique pour échanger deux variables est d'utiliser une **variable temporaire** : `let temp = a; a = b; b = temp;`. Mais en JavaScript, on peut faire encore plus simple en retournant directement `[b, a]` — JS crée automatiquement un nouveau tableau avec les valeurs dans l'ordre inversé. Pas besoin de variable temporaire !",
+            explanationEn: "The classic trick to swap two variables is using a **temporary variable**: `let temp = a; a = b; b = temp;`. In JavaScript, we can simplify by directly returning `[b, a]` — JS creates a new array with values in reversed order automatically.",
             exercise: {
-              questionFr: "Écrivez une fonction \`echangerVariables(a, b)\` qui retourne les deux variables échangées sous forme de tableau \`[b, a]\`.",
-              questionEn: "Write a function \`echangerVariables(a, b)\` that returns the two variables swapped as an array \`[b, a]\`.",
+              questionFr: "Écrivez une fonction \`echangerVariables(a, b)\` qui retourne un tableau contenant les valeurs échangées : `[b, a]`. Par exemple, echangerVariables(5, 10) doit retourner [10, 5].",
+              questionEn: "Write a function \`echangerVariables(a, b)\` that returns an array with swapped values: `[b, a]`. Example: echangerVariables(5, 10) returns [10, 5].",
               lang: "js",
-              initialCode: "function echangerVariables(a, b) {\n  // Votre code ici\n}",
+              initialCode: "function echangerVariables(a, b) {\n  // Astuce : utilisez une variable temporaire\n  // temp ← a, a ← b, b ← temp\n  // Ou retournez directement [b, a]\n}",
               testCases: [
                 { input: "5, 10", expected: "[10,5]" },
+                { input: "1, 99", expected: "[99,1]" },
                 { input: "'gauche', 'droite'", expected: '["droite","gauche"]' }
               ],
               solutionTemplate: "return [b, a];"
