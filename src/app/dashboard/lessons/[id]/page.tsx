@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, AlertCircle, Play, Sparkles, Terminal, Globe, Moon, Sun } from 'lucide-react';
 import { COURSES } from '@/lib/courseData';
+import LofiStudyAnimation from '@/components/LofiStudyAnimation';
 
 function LessonContent() {
   const router = useRouter();
@@ -121,7 +122,6 @@ function LessonContent() {
       setResults(data);
 
       if (data.passed) {
-        // Update local storage user progress
         setUser(data.user);
         localStorage.setItem('student_user', JSON.stringify(data.user));
       }
@@ -130,6 +130,44 @@ function LessonContent() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const parseInlineMarkdown = (line: string) => {
+    const regex = /(\*\*.*?\*\*|`.*?`)/g;
+    const splitParts = line.split(regex);
+    return splitParts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-bold text-slate-100">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return <code key={i} className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded text-blue-400 font-mono text-[10px]">{part.slice(1, -1)}</code>;
+      }
+      return part;
+    });
+  };
+
+  const parseMarkdown = (text: string) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    return lines.map((line, idx) => {
+      const trimmed = line.trim();
+      
+      if (trimmed.startsWith('# ')) {
+        return <h1 key={idx} className="text-lg md:text-xl font-extrabold text-blue-400 mt-4 mb-2 border-b border-[var(--border)] pb-1.5 uppercase tracking-wider">{trimmed.slice(2)}</h1>;
+      }
+      if (trimmed.startsWith('## ')) {
+        return <h2 key={idx} className="text-sm font-bold text-slate-200 mt-3 mb-1.5">{trimmed.slice(3)}</h2>;
+      }
+      if (trimmed.startsWith('- ')) {
+        const content = parseInlineMarkdown(trimmed.slice(2));
+        return <li key={idx} className="ml-5 list-disc text-xs text-[var(--text-secondary)] my-1">{content}</li>;
+      }
+      if (trimmed === '') {
+        return <div key={idx} className="h-2"></div>;
+      }
+
+      return <p key={idx} className="text-xs text-[var(--text-secondary)] leading-relaxed my-1.5">{parseInlineMarkdown(trimmed)}</p>;
+    });
   };
 
   if (!lesson || !user) return <div className="p-8 text-center">Loading...</div>;
@@ -161,7 +199,6 @@ function LessonContent() {
     }
   }[lang];
 
-  // Visual Flowchart representations dynamically based on lesson ID
   const renderFlowchart = () => {
     if (lesson.id === '1-1') {
       return (
@@ -243,12 +280,15 @@ function LessonContent() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
+    <div className="flex-1 flex flex-col min-h-screen mobile-page-container">
+      {/* Background Grid */}
+      <div className="grid-bg"></div>
+
       {/* Header */}
       <header className="sticky top-0 z-50 glass-panel mx-4 mt-4 px-6 py-4 flex items-center justify-between">
         <button
           onClick={() => router.push('/dashboard')}
-          className="flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-600 transition-colors"
+          className="flex items-center gap-2 text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           {t.back}
@@ -268,47 +308,57 @@ function LessonContent() {
 
       {/* Main content columns */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
         {/* Left Side: Lesson content */}
-        <section className="lg:col-span-6 space-y-6 overflow-y-auto max-h-[80vh] pr-2">
-          <div className="glass-panel p-6 md:p-8 space-y-6">
+        <section className="lg:col-span-6 space-y-6 overflow-y-auto max-h-[85vh] pr-2">
+          <div className="glass-panel p-6 md:p-8 space-y-6 bg-[var(--glass-bg)] border-[var(--border)]">
             <div className="prose dark:prose-invert max-w-none text-sm text-[var(--text-secondary)] leading-relaxed">
-              <div style={{ whiteSpace: 'pre-line' }}>
-                {lang === 'fr' ? lesson.contentFr : lesson.contentEn}
+              <div>
+                {parseMarkdown(lang === 'fr' ? lesson.contentFr : lesson.contentEn)}
               </div>
             </div>
 
             <div className="border-t border-[var(--border)] pt-6 space-y-4">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-500" />
+              <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2 text-slate-200">
+                <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
                 {t.flowchartTitle}
               </h3>
               {renderFlowchart()}
+            </div>
+
+            {/* Lofi study mascot sitting beside student coding play area */}
+            <div className="border-t border-[var(--border)] pt-6 flex flex-col items-center text-center space-y-4">
+              <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Compagnon de Travail Actif</span>
+              <LofiStudyAnimation />
+              <p className="text-[10px] text-[var(--text-muted)] italic max-w-xs leading-relaxed">
+                "Restez concentré, écrivez votre fonction dans l'éditeur et testez la validation."
+              </p>
             </div>
           </div>
         </section>
 
         {/* Right Side: Playground */}
         <section className="lg:col-span-6 space-y-6">
-          <div className="glass-panel p-6 space-y-4 flex flex-col h-full">
+          <div className="glass-panel p-6 space-y-4 flex flex-col h-full bg-[var(--glass-bg)] border-[var(--border)] shadow-2xl">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
               <div className="flex items-center gap-2">
                 <Terminal className="w-5 h-5 text-blue-500" />
                 <h3 className="font-bold text-base">{t.exerciseTitle}</h3>
               </div>
-              <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md text-xs font-bold uppercase">
+              <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md text-[10px] font-bold uppercase tracking-widest">
                 {lesson.exercise.lang.toUpperCase()}
               </span>
             </div>
 
-            <div className="text-sm font-medium py-2 px-3 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg">
+            <div className="text-xs font-semibold py-3 px-4 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-xl text-slate-200 leading-relaxed">
               {lang === 'fr' ? lesson.exercise.questionFr : lesson.exercise.questionEn}
             </div>
 
-            <div className="flex-1 min-h-[250px] relative rounded-xl overflow-hidden border border-[var(--border)] bg-slate-900 text-slate-100 font-mono text-sm p-4">
+            <div className="flex-1 min-h-[300px] relative rounded-xl overflow-hidden border border-[var(--border)] bg-slate-950 font-mono text-xs p-4 shadow-inner">
               <textarea
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full h-full bg-transparent resize-none outline-none border-none text-emerald-400 focus:ring-0"
+                className="w-full h-full bg-transparent resize-none outline-none border-none text-emerald-400 focus:ring-0 font-mono leading-relaxed"
                 style={{ tabSize: 2 }}
                 spellCheck="false"
               />
@@ -329,9 +379,9 @@ function LessonContent() {
               }`}>
                 {results.passed ? <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" /> : <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />}
                 <div className="space-y-1">
-                  <h4 className="font-bold text-sm">{results.passed ? t.successMsg : t.failMsg}</h4>
-                  {results.error && <p className="text-xs font-mono text-red-400 mt-1">Error: {results.error}</p>}
-                  <p className="text-xs font-medium mt-1">Score: {results.score}%</p>
+                  <h4 className="font-bold text-xs">{results.passed ? t.successMsg : t.failMsg}</h4>
+                  {results.error && <p className="text-[10px] font-mono text-red-400 mt-1">Error: {results.error}</p>}
+                  <p className="text-[10px] font-bold mt-1">Score: {results.score}%</p>
                 </div>
               </div>
             )}
@@ -340,16 +390,16 @@ function LessonContent() {
               <button
                 onClick={handleSubmitCode}
                 disabled={loading}
-                className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg"
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/10"
               >
-                <Play className="w-4 h-4 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-current" />
                 {loading ? "Evaluation..." : t.submitBtn}
               </button>
 
               {results?.passed && (
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-colors"
+                  className="py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors"
                 >
                   {t.nextLessonCTA}
                 </button>
@@ -364,7 +414,7 @@ function LessonContent() {
 
 export default function LessonPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center">Loading Lesson...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs font-semibold">Loading Lesson...</div>}>
       <LessonContent />
     </Suspense>
   );
