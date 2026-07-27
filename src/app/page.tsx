@@ -104,7 +104,8 @@ export default function LandingPage() {
       }
       grecaptcha.ready(async () => {
         try {
-          const token = await grecaptcha.execute('6LfIVQQtAAAAAFbeVPQ83R9Xiwzsvz35gfYH9k4j', { action: actionName });
+          const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeaJmctAAAAAKcF7djsU9XLxZVJ7Zp3tNn_7veU";
+          const token = await grecaptcha.execute(siteKey, { action: actionName });
           resolve(token);
         } catch (err) {
           reject(err);

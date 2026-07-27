@@ -12,7 +12,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const siteKey = "6LfIVQQtAAAAAFbeVPQ83R9Xiwzsvz35gfYH9k4j";
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeaJmctAAAAAKcF7djsU9XLxZVJ7Zp3tNn_7veU";
   return (
     <html lang="fr" className="h-full">
       <head>

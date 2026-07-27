@@ -1,5 +1,5 @@
 export async function verifyRecaptcha(token: string): Promise<boolean> {
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY || "6LfIVQQtAAAAAHv94BnAaf6UiY9sHNE0t1V6XfIf";
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY || "6LeaJmctAAAAAJWtEPeNrZhreOrhDMiKJq-oafCj";
   
   // Easy bypass via environment variable
   if (process.env.BYPASS_RECAPTCHA === 'true') {
