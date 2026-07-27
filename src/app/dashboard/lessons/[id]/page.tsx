@@ -327,6 +327,22 @@ function LessonContent() {
             </div>
 
             {/* Lofi study mascot sitting beside student coding play area */}
+            {lesson.attachmentUrl && (
+              <div className="border-t border-[var(--border)] pt-6 space-y-3 flex flex-col items-center">
+                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ressources Téléchargeables</span>
+                <a
+                  href={lesson.attachmentUrl}
+                  download={lesson.attachmentName || 'cours_document.pdf'}
+                  className="flex items-center gap-2 px-4 py-3 bg-[var(--bg-tertiary)] border border-[var(--border)] hover:border-emerald-500/40 rounded-xl text-xs font-semibold transition-all w-fit group"
+                >
+                  <svg className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1m8-8v8m0 0l-3-3m3 3l3-3M2 17h20" />
+                  </svg>
+                  <span className="text-emerald-400 group-hover:underline">{lesson.attachmentName || 'Télécharger le document PDF'}</span>
+                </a>
+              </div>
+            )}
+
             <div className="border-t border-[var(--border)] pt-6 flex flex-col items-center text-center space-y-4">
               <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Compagnon de Travail Actif</span>
               <LofiStudyAnimation />
@@ -386,23 +402,47 @@ function LessonContent() {
               </div>
             )}
 
-            <div className="pt-2 flex items-center gap-4">
-              <button
-                onClick={handleSubmitCode}
-                disabled={loading}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/10"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                {loading ? "Evaluation..." : t.submitBtn}
-              </button>
-
-              {results?.passed && (
+            <div className="pt-2 flex flex-col gap-4">
+              <div className="flex items-center gap-4">
                 <button
-                  onClick={() => router.push('/dashboard')}
-                  className="py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors"
+                  onClick={handleSubmitCode}
+                  disabled={loading}
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/10"
                 >
-                  {t.nextLessonCTA}
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  {loading ? "Evaluation..." : t.submitBtn}
                 </button>
+
+                {results?.passed && (
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors"
+                  >
+                    {t.nextLessonCTA}
+                  </button>
+                )}
+              </div>
+
+              {results?.passed && (lesson.explanationFr || lesson.exercise.solutionTemplate) && (
+                <div className="border-t border-[var(--border)] pt-4 space-y-3 animate-fade-in">
+                  <div className="flex items-center gap-2 text-emerald-500">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-[9px] font-bold uppercase tracking-widest">Correction & Explication de l'Enseignant</span>
+                  </div>
+                  <div className="p-4 bg-emerald-950/10 border border-emerald-500/20 rounded-xl space-y-2 text-left">
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                      {lang === 'fr' ? lesson.explanationFr : lesson.explanationEn}
+                    </p>
+                    {lesson.exercise.solutionTemplate && (
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Code Corrigé Type :</span>
+                        <pre className="p-3 bg-slate-950 rounded-lg text-[10px] font-mono text-emerald-400 overflow-x-auto">
+                          {lesson.exercise.solutionTemplate}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
